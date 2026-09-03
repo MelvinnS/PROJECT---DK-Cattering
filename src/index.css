@@ -1,0 +1,109 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: "Poppins", system-ui, sans-serif;
+  background-color: #FBF3E7;
+}
+
+/* Hero product showcase: foto masuk dari kanan-bawah (rotate + fade),
+   settle dengan sedikit overshoot (efek pantul), meniru referensi video. */
+@keyframes showcaseEnter {
+  0% {
+    opacity: 0;
+    transform: translate(16%, 12%) rotate(28deg) scale(0.82);
+  }
+  55% {
+    opacity: 1;
+    transform: translate(-3%, -2%) rotate(-6deg) scale(1.04);
+  }
+  75% {
+    transform: translate(1%, 0.5%) rotate(2deg) scale(0.99);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(0, 0) rotate(0deg) scale(1);
+  }
+}
+
+/* Foto lama keluar ke kiri-bawah sambil rotate + fade. */
+@keyframes showcaseExit {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) rotate(0deg) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-20%, 14%) rotate(-32deg) scale(0.8);
+  }
+}
+
+.showcase-enter {
+  animation: showcaseEnter 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.showcase-exit {
+  animation: showcaseExit 0.65s cubic-bezier(0.55, 0, 0.85, 0.35) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-blob-rotate,
+  .showcase-enter,
+  .showcase-exit {
+    animation: none !important;
+  }
+}
+
+/* Sembunyikan scrollbar bawaan browser pada elemen yang butuh overflow
+   tapi tidak ingin menampilkan garis scroll (dipakai di lembar keranjang). */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Styling Khusus Cetak Struk (window.print) */
+@media print {
+  /* Sembunyikan sidebar, navbar, action buttons, dan elemen luar */
+  header,
+  aside,
+  nav,
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    font-size: 12pt;
+    padding: 0;
+    margin: 0;
+  }
+
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .receipt-print-area {
+    border: 1px solid #000000 !important;
+    box-shadow: none !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    padding: 16px !important;
+    margin: 0 auto !important;
+  }
+}
+
