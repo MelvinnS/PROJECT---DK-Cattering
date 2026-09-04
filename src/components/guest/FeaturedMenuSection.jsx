@@ -1,153 +1,243 @@
-import { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
-import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
-import { useMenu } from "../../context/MenuContext";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  ChevronLeft,
+  ChevronRight,
+  ArrowRight,
+  Star,
+  Plus,
+  Heart,
+  Check,
+} from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
+import { useOrder } from "../../context/OrderContext";
+import { formatCurrency } from "../../utils/formatters";
 
-const DEFAULT_SLIDES = [
+import menu1 from "../../assets/images/menu1.jpg";
+import menu2 from "../../assets/images/menu2.jpg";
+import menu3 from "../../assets/images/menu3.jpg";
+import menu4 from "../../assets/images/menu4.jpg";
+
+const FEATURED_MENUS = [
   {
-    id: "default-1",
-    name: "Sup Brokoli Krim Gurih",
-    image:
-      "https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=1400&q=85",
+    id: 1,
+    name: "Nasi Ayam Katsu",
+    price: 18000,
+    image: menu1,
+    rating: 4.8,
+    reviewsCount: 120,
+    isPopular: true,
   },
   {
-    id: "default-2",
-    name: "Nasi Ayam Katsu Spesial",
-    image:
-      "https://images.unsplash.com/photo-1626200419199-391ae4be7a41?auto=format&fit=crop&w=1400&q=85",
+    id: 2,
+    name: "Nasi Ayam Crispy",
+    price: 17000,
+    image: menu2,
+    rating: 4.7,
+    reviewsCount: 89,
+    isPopular: false,
   },
   {
-    id: "default-3",
-    name: "Nasi Daging Yakiniku",
-    image:
-      "https://images.unsplash.com/photo-1617196034183-421b4917c92d?auto=format&fit=crop&w=1400&q=85",
+    id: 3,
+    name: "Nasi Ayam Bakar",
+    price: 19000,
+    image: menu3,
+    rating: 4.9,
+    reviewsCount: 76,
+    isPopular: true,
   },
   {
-    id: "default-4",
-    name: "Nasi Chicken Teriyaki",
-    image:
-      "https://images.unsplash.com/photo-1617093727343-374698b1b08d?auto=format&fit=crop&w=1400&q=85",
+    id: 4,
+    name: "Nasi Beef Teriyaki",
+    price: 20000,
+    image: menu4,
+    rating: 4.8,
+    reviewsCount: 95,
+    isPopular: false,
   },
 ];
 
-const AUTO_PLAY_INTERVAL = 4500; // ms
-
 const FeaturedMenuSection = () => {
   const navigate = useNavigate();
-  const { availableMenus } = useMenu();
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const { isAuthenticated } = useAuth();
+  const { addToCart } = useOrder();
 
-  // Gunakan data menu dari katalog jika ada, padukan dengan default agar selalu minimal 4 slide
-  const slides =
-    availableMenus && availableMenus.length > 0
-      ? [
-          ...availableMenus.map((m) => ({
-            id: m.id,
-            name: m.name,
-            image: m.image,
-          })),
-          ...DEFAULT_SLIDES.slice(Math.min(availableMenus.length, 3)),
-        ].slice(0, Math.max(availableMenus.length, 4))
-      : DEFAULT_SLIDES;
+  const [activeDot, setActiveDot] = useState(0);
+  const [favorites, setFavorites] = useState({});
+  const [addedIds, setAddedIds] = useState({});
 
-  const handlePrev = useCallback(() => {
-    setCurrentIndex((prev) => (prev === 0 ? slides.length - 1 : prev - 1));
-  }, [slides.length]);
+  const toggleFavorite = (id, e) => {
+    e.stopPropagation();
+    setFavorites((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
 
-  const handleNext = useCallback(() => {
-    setCurrentIndex((prev) => (prev === slides.length - 1 ? 0 : prev + 1));
-  }, [slides.length]);
+  const handleAddToCart = (menu, e) => {
+    e.stopPropagation();
+    if (!isAuthenticated) {
+      navigate("/login", { state: { from: "/" } });
+      return;
+    }
+    addToCart(menu);
+    setAddedIds((prev) => ({ ...prev, [menu.id]: true }));
+    setTimeout(() => {
+      setAddedIds((prev) => ({ ...prev, [menu.id]: false }));
+    }, 1200);
+  };
 
-  // Autoplay slider
-  useEffect(() => {
-    if (slides.length <= 1) return undefined;
-    const timer = setInterval(() => {
-      handleNext();
-    }, AUTO_PLAY_INTERVAL);
+  const handlePrev = () => {
+    setActiveDot((prev) => (prev === 0 ? 3 : prev - 1));
+  };
 
-    return () => clearInterval(timer);
-  }, [handleNext, slides.length]);
+  const handleNext = () => {
+    setActiveDot((prev) => (prev === 3 ? 0 : prev + 1));
+  };
 
   return (
-    <section className="max-w-7xl mx-auto px-6 lg:px-10 py-12 md:py-16">
-      {/* Header Section */}
-      <div className="mb-6 md:mb-8">
-        <h2 className="text-2xl md:text-3xl font-extrabold text-coffee-800 tracking-wide">
-          MENU HARI INI
-        </h2>
-        <div className="w-14 h-1 bg-accent-500 rounded-full mt-1.5 mb-3" />
-        <p className="text-coffee-500/90 text-sm md:text-base leading-relaxed max-w-md">
-          Pilihan menu yang tersedia hari ini,
-          <br className="hidden sm:inline" /> disiapkan dengan bahan terbaik.
-        </p>
-      </div>
+    <section className="bg-[#FAF4EA] py-14 md:py-20" aria-label="Menu Hari Ini">
+      <div className="max-w-7xl mx-auto px-6 lg:px-10">
+        {/* ── Section Header */}
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8 sm:mb-10">
+          <div>
+            <span className="text-xs sm:text-sm font-extrabold tracking-[0.2em] text-[#C17F45] uppercase block mb-1.5">
+              Menu Hari Ini
+            </span>
+            <h2 className="text-2xl sm:text-3xl lg:text-[32px] font-extrabold text-[#2A2118] tracking-tight">
+              Pilihan Spesial Hari Ini
+            </h2>
+            <p className="text-[#6B5744] text-xs sm:text-sm md:text-base mt-1.5 max-w-md font-normal">
+              Menu pilihan yang tersedia hari ini, disiapkan dengan bahan terbaik.
+            </p>
+          </div>
 
-      {/* Main Image Slider Banner */}
-      <div className="relative">
-        {/* Tombol Panah Kiri */}
-        <button
-          type="button"
-          onClick={handlePrev}
-          aria-label="Menu sebelumnya"
-          className="absolute -left-3 sm:-left-5 top-1/2 -translate-y-1/2 z-20 w-11 h-11 sm:w-13 sm:h-13 rounded-full bg-white/95 text-coffee-800 shadow-[0_8px_24px_rgba(42,33,24,0.12)] border border-cream-200 flex items-center justify-center transition-all duration-200 hover:scale-105 hover:bg-white active:scale-95 cursor-pointer"
-        >
-          <ChevronLeft size={22} strokeWidth={2.2} />
-        </button>
+          {/* Tombol Lihat Menu Lainnya di Kanan Atas */}
+          <Link to="/menu" className="self-start sm:self-auto shrink-0">
+            <button
+              type="button"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white hover:bg-cream-50 text-[#3A2E23] text-xs sm:text-sm font-bold border border-[#D8C2A7] shadow-2xs hover:shadow-xs transition-all duration-200 cursor-pointer active:scale-95"
+            >
+              <span>Lihat Menu Lainnya</span>
+              <ArrowRight size={15} strokeWidth={2.4} />
+            </button>
+          </Link>
+        </div>
 
-        {/* Gambar Banner Melengkung */}
-        <div className="relative w-full h-60 sm:h-80 md:h-[380px] lg:h-[420px] rounded-[2rem] sm:rounded-[2.5rem] overflow-hidden shadow-[0_20px_50px_-20px_rgba(42,33,24,0.18)] border border-coffee-100/50 bg-cream-100">
-          {slides.map((slide, i) => (
-            <img
-              key={slide.id || i}
-              src={slide.image}
-              alt={slide.name || "Menu Hari Ini"}
-              className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 ease-out ${
-                i === currentIndex
-                  ? "opacity-100 scale-100"
-                  : "opacity-0 scale-105 pointer-events-none"
+        {/* ── 4 Menu Cards Slider Grid */}
+        <div className="relative">
+          {/* Tombol Panah Kiri */}
+          <button
+            type="button"
+            onClick={handlePrev}
+            aria-label="Menu sebelumnya"
+            className="absolute -left-3 sm:-left-5 top-1/2 -translate-y-1/2 z-20 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white text-[#3A2E23] shadow-[0_6px_20px_rgba(42,33,24,0.12)] border border-[#E8D5B7] flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer"
+          >
+            <ChevronLeft size={20} strokeWidth={2.4} />
+          </button>
+
+          {/* Grid 4 Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6">
+            {FEATURED_MENUS.map((item) => {
+              const isFav = Boolean(favorites[item.id]);
+              const isAdded = Boolean(addedIds[item.id]);
+
+              return (
+                <div
+                  key={item.id}
+                  className="group bg-white rounded-3xl p-3.5 border border-[#EBDDC8] shadow-[0_10px_30px_-15px_rgba(42,33,24,0.12)] hover:shadow-[0_16px_36px_-12px_rgba(140,74,38,0.2)] hover:border-[#D8C2A7] transition-all duration-300 flex flex-col justify-between"
+                >
+                  {/* Image Container with Favorite Heart Button */}
+                  <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden bg-[#FAF4EA]">
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      loading="lazy"
+                    />
+
+                    {/* Tombol Favorite Heart */}
+                    <button
+                      type="button"
+                      onClick={(e) => toggleFavorite(item.id, e)}
+                      aria-label="Simpan ke favorit"
+                      className="absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-white/90 backdrop-blur-xs flex items-center justify-center text-[#8C4A26] shadow-sm hover:scale-110 active:scale-90 transition-transform cursor-pointer"
+                    >
+                      <Heart
+                        size={16}
+                        className={`${
+                          isFav ? "fill-[#E02424] text-[#E02424]" : "text-[#7A5843]"
+                        } transition-colors`}
+                      />
+                    </button>
+                  </div>
+
+                  {/* Card Body */}
+                  <div className="pt-3.5 pb-1 px-1 flex flex-col gap-1">
+                    <h3 className="font-extrabold text-sm sm:text-base text-[#2A2118] leading-snug group-hover:text-[#8C4A26] transition-colors">
+                      {item.name}
+                    </h3>
+                    <p className="font-bold text-xs sm:text-sm text-[#3A2E23]">
+                      {formatCurrency(item.price)}
+                    </p>
+
+                    {/* Bottom Row: Rating Star & Plus Button */}
+                    <div className="mt-2 pt-2 border-t border-[#F5EADB] flex items-center justify-between">
+                      {/* Rating */}
+                      <div className="flex items-center gap-1 text-[11px] font-bold text-[#6B5744]">
+                        <Star size={13} className="text-[#F5A623] fill-[#F5A623]" />
+                        <span>{item.rating}</span>
+                        <span className="text-coffee-400 font-normal">({item.reviewsCount}+)</span>
+                      </div>
+
+                      {/* Add to Cart Plus Button */}
+                      <button
+                        type="button"
+                        onClick={(e) => handleAddToCart(item, e)}
+                        aria-label={`Tambah ${item.name} ke pesanan`}
+                        className={`w-8 h-8 rounded-full flex items-center justify-center text-white transition-all duration-200 shadow-xs cursor-pointer active:scale-90 ${
+                          isAdded
+                            ? "bg-green-600 scale-110"
+                            : "bg-[#8C4A26] hover:bg-[#723819] hover:scale-105"
+                        }`}
+                      >
+                        {isAdded ? (
+                          <Check size={16} strokeWidth={2.6} />
+                        ) : (
+                          <Plus size={18} strokeWidth={2.4} />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Tombol Panah Kanan */}
+          <button
+            type="button"
+            onClick={handleNext}
+            aria-label="Menu berikutnya"
+            className="absolute -right-3 sm:-right-5 top-1/2 -translate-y-1/2 z-20 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white text-[#3A2E23] shadow-[0_6px_20px_rgba(42,33,24,0.12)] border border-[#E8D5B7] flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer"
+          >
+            <ChevronRight size={20} strokeWidth={2.4} />
+          </button>
+        </div>
+
+        {/* ── Carousel Dots */}
+        <div className="flex items-center justify-center gap-2.5 mt-8 sm:mt-10">
+          {[0, 1, 2, 3].map((dot) => (
+            <button
+              key={dot}
+              type="button"
+              onClick={() => setActiveDot(dot)}
+              aria-label={`Slide ${dot + 1}`}
+              className={`transition-all duration-300 rounded-full cursor-pointer ${
+                dot === activeDot
+                  ? "w-2.5 h-2.5 bg-[#8C4A26] ring-2 ring-[#8C4A26]/30"
+                  : "w-2 h-2 border border-[#D8C2A7] bg-transparent hover:border-[#8C4A26]"
               }`}
             />
           ))}
         </div>
-
-        {/* Tombol Panah Kanan */}
-        <button
-          type="button"
-          onClick={handleNext}
-          aria-label="Menu berikutnya"
-          className="absolute -right-3 sm:-right-5 top-1/2 -translate-y-1/2 z-20 w-11 h-11 sm:w-13 sm:h-13 rounded-full bg-white/95 text-coffee-800 shadow-[0_8px_24px_rgba(42,33,24,0.12)] border border-cream-200 flex items-center justify-center transition-all duration-200 hover:scale-105 hover:bg-white active:scale-95 cursor-pointer"
-        >
-          <ChevronRight size={22} strokeWidth={2.2} />
-        </button>
-      </div>
-
-      {/* Titik Indikator (Carousel Dots) */}
-      <div className="flex items-center justify-center gap-2.5 mt-6 mb-7">
-        {slides.map((_, i) => (
-          <button
-            key={i}
-            type="button"
-            onClick={() => setCurrentIndex(i)}
-            aria-label={`Pindah ke slide ${i + 1}`}
-            className={`transition-all duration-300 rounded-full cursor-pointer ${
-              i === currentIndex
-                ? "w-3 h-3 bg-accent-600 ring-2 ring-accent-600/30"
-                : "w-2.5 h-2.5 border border-coffee-400/60 bg-transparent hover:border-coffee-600"
-            }`}
-          />
-        ))}
-      </div>
-
-      {/* Tombol CTA "Lihat Menu Lainnya" */}
-      <div className="flex justify-center">
-        <button
-          type="button"
-          onClick={() => navigate("/menu")}
-          className="inline-flex items-center justify-center gap-2 px-8 py-3 rounded-full bg-cream-50/90 hover:bg-cream-100 text-accent-700 font-semibold text-sm sm:text-base border border-accent-400/80 hover:border-accent-500 shadow-sm transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
-        >
-          <span>Lihat Menu Lainnya</span>
-          <ArrowRight size={18} strokeWidth={2.2} />
-        </button>
       </div>
     </section>
   );

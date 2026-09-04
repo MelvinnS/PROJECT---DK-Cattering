@@ -53,8 +53,22 @@ body {
   animation: showcaseExit 0.65s cubic-bezier(0.55, 0, 0.85, 0.35) both;
 }
 
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(1.2deg);
+  }
+}
+
+.animate-float {
+  animation: float 4.5s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-blob-rotate,
+  .animate-float,
   .showcase-enter,
   .showcase-exit {
     animation: none !important;
