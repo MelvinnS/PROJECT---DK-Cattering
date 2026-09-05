@@ -43,10 +43,10 @@ const AdminCustomersPage = () => {
     if (!q) return customers;
     return customers.filter(
       (c) =>
-        c.customerId.toLowerCase().includes(q) ||
+        c.id.toLowerCase().includes(q) ||
         c.fullName.toLowerCase().includes(q) ||
-        c.phone.toLowerCase().includes(q) ||
-        c.username.toLowerCase().includes(q)
+        (c.phone && c.phone.toLowerCase().includes(q)) ||
+        (c.email && c.email.toLowerCase().includes(q))
     );
   }, [customers, search]);
 
@@ -60,11 +60,11 @@ const AdminCustomersPage = () => {
 
   const handleExport = () => {
     // Export simple CSV of customers
-    const headers = "ID Customer,Nama Lengkap,No HP,Username,Terdaftar\n";
+    const headers = "ID Customer,Nama Lengkap,No HP,Email,Terdaftar\n";
     const rows = filteredCustomers
       .map(
         (c) =>
-          `"${c.customerId}","${c.fullName}","${c.phone}","${c.username}","${c.registeredDate}"`
+          `"${c.id}","${c.fullName}","${c.phone || '-'}","${c.email || '-'}","${c.createdAt ? new Date(c.createdAt).toLocaleDateString('id-ID') : '-'}"`
       )
       .join("\n");
     const blob = new Blob([headers + rows], { type: "text/csv;charset=utf-8;" });
@@ -172,7 +172,7 @@ const AdminCustomersPage = () => {
                     <span className="w-2.5 h-2.5 rounded-full bg-coffee-400/40 inline-block" />
                   </div>
                   <span className="font-bold text-sm text-coffee-800">
-                    {customer.customerId}
+                    {customer.id.substring(0, 8)}...
                   </span>
                 </div>
 
@@ -189,7 +189,7 @@ const AdminCustomersPage = () => {
                     </div>
                     <div className="min-w-0">
                       <p className="font-bold text-xs text-coffee-800">
-                        {customer.customerId}
+                        {customer.id.substring(0, 8)}...
                       </p>
                       <p className="font-semibold text-sm text-coffee-700 truncate">
                         {customer.fullName}
