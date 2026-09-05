@@ -1,21 +1,21 @@
-import { useMemo, useState } from "react";
-import { Plus, Search, UtensilsCrossed } from "lucide-react";
+import { useMemo, useState, useEffect } from "react";
+import { Plus, Search, UtensilsCrossed, Loader2 } from "lucide-react";
 import { useMenu } from "../../context/MenuContext";
 import AdminMenuCard from "../../components/admin/AdminMenuCard";
 import MenuFormModal from "../../components/admin/MenuFormModal";
 
 /**
- * Kelola Menu (Admin) — CRUD penuh atas katalog menu.
- *
- * ⚠️ MOCK DATA — lihat context/MenuContext.jsx. Menu yang statusnya
- * "Tersedia" di sini otomatis yang tampil di halaman Menu Guest/Customer
- * (satu sumber data yang sama), jadi Admin tidak perlu proses terpisah
- * untuk "publish" ke sisi pelanggan.
+ * Kelola Menu (Admin) — CRUD penuh atas katalog menu via BE API.
  */
 const AdminMenuPage = () => {
-  const { catalog, addMenu, updateMenu, deleteMenu, toggleAvailability } = useMenu();
+  const { catalog, isLoading, addMenu, updateMenu, deleteMenu, toggleAvailability, loadAdminCatalog } = useMenu();
   const [search, setSearch] = useState("");
   const [modalState, setModalState] = useState({ open: false, mode: "add", menu: null });
+
+  // Load katalog admin saat halaman dibuka
+  useEffect(() => {
+    loadAdminCatalog();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();

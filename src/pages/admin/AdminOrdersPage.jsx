@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   Search,
@@ -8,9 +8,10 @@ import {
   ClipboardList,
   Clock,
   Check,
+  Loader2,
 } from "lucide-react";
 import { useAdminOrders } from "../../context/AdminOrderContext";
-import { dummyOrderStatusColor, dummyOrderStatusLabel } from "../../data/adminDummyData";
+import { orderStatusColor as dummyOrderStatusColor, orderStatusLabel as dummyOrderStatusLabel } from "../../context/OrderContext";
 import { formatCurrency } from "../../utils/formatters";
 import RejectOrderModal from "../../components/admin/RejectOrderModal";
 
@@ -24,8 +25,12 @@ const statusFilterTabs = [
 ];
 
 const AdminOrdersPage = () => {
-  const { orders, acceptOrder, rejectOrder, batchAcceptOrders, batchRejectOrders } =
+  const { orders, isLoading, fetchOrders, acceptOrder, rejectOrder, batchAcceptOrders, batchRejectOrders } =
     useAdminOrders();
+
+  useEffect(() => {
+    fetchOrders({ limit: 50 });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [search, setSearch] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("ALL");

@@ -17,7 +17,7 @@ const todayLabel = new Date().toLocaleDateString("id-ID", {
 
 const AdminDashboardPage = () => {
   const { user } = useAuth();
-  const { orders, statusCounts } = useAdminOrders();
+  const { orders, statusCounts, fetchOrders } = useAdminOrders();
 
   // Ambil 5 pesanan terbaru
   const recentOrders = useMemo(() => {
@@ -31,13 +31,16 @@ const AdminDashboardPage = () => {
   const [isLoadingAlerts, setIsLoadingAlerts] = useState(true);
 
   useEffect(() => {
+    // Fetch pesanan terbaru untuk dashboard
+    fetchOrders({ limit: 20 });
+
     let isMounted = true;
     getAnalyticsOverview("daily")
       .then((data) => {
         if (isMounted) setUrgentCount(data.urgentAlertsCount ?? 0);
       })
       .catch(() => {
-        // Abaikan error jika backend belum berjalan (menggunakan fallback dummy)
+        // Abaikan error jika backend belum berjalan
       })
       .finally(() => {
         if (isMounted) setIsLoadingAlerts(false);
@@ -45,7 +48,8 @@ const AdminDashboardPage = () => {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
 
   const alertItems = [];
   if (urgentCount > 0) {

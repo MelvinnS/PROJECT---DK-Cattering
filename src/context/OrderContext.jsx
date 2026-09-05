@@ -1,17 +1,69 @@
-import { createContext, useContext, useMemo, useState } from "react";
-import { seedOrders } from "../data/orderDummyData";
+import { createContext, useContext, useMemo, useState, useCallback } from "react";
+import { getMyOrders, checkout as apiCheckout } from "../services/orderService";
 
 const OrderContext = createContext(undefined);
 
 let cartItemUid = 0;
 
-export const OrderProvider = ({ children }) => {
-  // Isi keranjang sementara (sebelum "Pesan Sekarang" ditekan).
-  const [cartItems, setCartItems] = useState([]);
-  // Daftar pesanan yang sudah dibuat (Pesanan aktif + Riwayat).
-  // Diawali data dummy supaya halaman tidak kosong saat development.
-  const [orders, setOrders] = useState(seedOrders);
+// Status aktif (belum selesai)
+export const ACTIVE_STATUSES = ["PENDING_PAYMENT", "PAID", "IN_KITCHEN", "ON_DELIVERY", "DELIVERED"];
+// Status final (sudah selesai/batal)
+export const FINAL_STATUSES = ["COMPLETED", "CANCELLED"];
 
+// Mapping status BE → label Indonesia
+export const orderStatusLabel = {
+  PENDING_PAYMENT: "Menunggu Pembayaran",
+  PAID: "Menunggu Konfirmasi",
+  IN_KITCHEN: "Sedang Dimasak",
+  ON_DELIVERY: "Sedang Diantar",
+  DELIVERED: "Sudah Tiba",
+  COMPLETED: "Selesai",
+  CANCELLED: "Dibatalkan",
+};
+
+// Mapping status → warna badge
+export const orderStatusColor = {
+  PENDING_PAYMENT: "bg-yellow-100 text-yellow-700",
+  PAID: "bg-amber-100 text-amber-700",
+  IN_KITCHEN: "bg-blue-100 text-blue-700",
+  ON_DELIVERY: "bg-purple-100 text-purple-700",
+  DELIVERED: "bg-teal-100 text-teal-700",
+  COMPLETED: "bg-green-100 text-green-700",
+  CANCELLED: "bg-red-100 text-red-700",
+};
+
+export const OrderProvider = ({ children }) => {
+  // ── Keranjang ──────────────────────────────────────────────────────────────
+  const [cartItems, setCartItems] = useState([]);
+
+  // ── Orders dari BE ─────────────────────────────────────────────────────────
+  const [orders, setOrders] = useState([]);
+  const [ordersMeta, setOrdersMeta] = useState(null);
+  const [isLoadingOrders, setIsLoadingOrders] = useState(false);
+  const [ordersError, setOrdersError] = useState(null);
+
+  // ── Checkout state ─────────────────────────────────────────────────────────
+  const [lastCheckoutResult, setLastCheckoutResult] = useState(null); // { order, louvinPayment }
+
+  // ── Fetch orders dari BE ───────────────────────────────────────────────────
+  const fetchOrders = useCallback(async (params = {}) => {
+    setIsLoadingOrders(true);
+    setOrdersError(null);
+    try {
+      const result = await getMyOrders(params);
+      const items = Array.isArray(result) ? result : result?.data ?? [];
+      const meta = result?.meta ?? null;
+      setOrders(items);
+      setOrdersMeta(meta);
+    } catch (err) {
+      console.error("Gagal memuat pesanan:", err);
+      setOrdersError(err.message ?? "Gagal memuat pesanan");
+    } finally {
+      setIsLoadingOrders(false);
+    }
+  }, []);
+
+  // ── Cart operations ────────────────────────────────────────────────────────
   const addToCart = (menu) => {
     setCartItems((prev) => {
       const existing = prev.find((item) => item.menuId === menu.id);
@@ -37,9 +89,6 @@ export const OrderProvider = ({ children }) => {
     setCartItems((prev) => prev.filter((item) => item.menuId !== menuId));
   };
 
-  // Tambah 1 qty item yang SUDAH ada di keranjang (dipakai tombol "+" pada
-  // stepper). Kalau item belum ada, tidak melakukan apa-apa — pakai
-  // addToCart(menu) untuk menambah item baru pertama kali.
   const incrementQty = (menuId) => {
     setCartItems((prev) =>
       prev.map((item) =>
@@ -48,8 +97,6 @@ export const OrderProvider = ({ children }) => {
     );
   };
 
-  // Kurangi 1 qty item (dipakai tombol "-" pada stepper). Kalau qty jadi 0,
-  // item otomatis dihapus dari keranjang — persis pola stepper Gacoan dkk.
   const decrementQty = (menuId) => {
     setCartItems((prev) =>
       prev
@@ -72,29 +119,46 @@ export const OrderProvider = ({ children }) => {
     [cartItems]
   );
 
+  // ── Checkout ke BE ─────────────────────────────────────────────────────────
   /**
-   * Simulasi checkout/pembayaran (belum terhubung payment gateway/backend).
-   * Membuat 1 order baru berstatus "Menunggu Konfirmasi" dari isi keranjang,
-   * lalu mengosongkan keranjang. Nantinya order ini akan dikonfirmasi Admin
-   * lewat backend, dan status-nya berubah sampai akhirnya masuk Riwayat.
+   * Kirim pesanan ke backend.
+   * @param {{ paymentType: string, slotId?: string, addressId?: string, deliveryMethod?: string, notes?: string }} options
+   * @returns hasil dari BE: { id, orderNumber, louvinPayment: { qr_string, va_number, expired_at } }
    */
-  const placeOrder = () => {
+  const placeOrder = async (options = {}) => {
     if (cartItems.length === 0) return null;
 
-    const newOrder = {
-      id: `ORD-${Date.now()}`,
-      date: new Date().toISOString().slice(0, 10),
-      items: cartItems.map(({ name, qty, price }) => ({ name, qty, price })),
-      total: cartTotal,
-      status: "Menunggu Konfirmasi",
+    const payload = {
+      items: cartItems.map(({ menuId, qty }) => ({
+        menuId,
+        quantity: qty,
+      })),
+      paymentType: options.paymentType ?? "qris",
+      ...(options.slotId && { slotId: options.slotId }),
+      ...(options.addressId && { addressId: options.addressId }),
+      ...(options.deliveryMethod && { deliveryMethod: options.deliveryMethod }),
+      ...(options.notes && { notes: options.notes }),
     };
 
-    setOrders((prev) => [newOrder, ...prev]);
+    const result = await apiCheckout(payload);
+    setLastCheckoutResult(result);
     clearCart();
-    return newOrder;
+    return result;
   };
 
+  // ── Derived orders ─────────────────────────────────────────────────────────
+  const activeOrders = useMemo(
+    () => orders.filter((o) => ACTIVE_STATUSES.includes(o.status)),
+    [orders]
+  );
+
+  const pastOrders = useMemo(
+    () => orders.filter((o) => FINAL_STATUSES.includes(o.status)),
+    [orders]
+  );
+
   const value = {
+    // Cart
     cartItems,
     cartTotal,
     cartCount,
@@ -103,8 +167,20 @@ export const OrderProvider = ({ children }) => {
     incrementQty,
     decrementQty,
     clearCart,
+    // Orders
     orders,
+    ordersMeta,
+    activeOrders,
+    pastOrders,
+    isLoadingOrders,
+    ordersError,
+    fetchOrders,
+    // Checkout
     placeOrder,
+    lastCheckoutResult,
+    // Utils
+    orderStatusLabel,
+    orderStatusColor,
   };
 
   return <OrderContext.Provider value={value}>{children}</OrderContext.Provider>;

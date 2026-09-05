@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import {
   Search,
   MessageSquare,
@@ -318,18 +318,54 @@ const ReviewDetailModal = ({ review, onClose, onToggleRead }) => {
 // ─── KOMPONEN UTAMA: ADMIN REVIEWS PAGE ───────────────────────────────────────
 
 const AdminReviewsPage = () => {
-  const [reviews, setReviews] = useState(INITIAL_REVIEWS);
+  const [reviews, setReviews] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("ALL"); // 'ALL' | 'UNREAD' | 'READ'
-  const [ratingFilter, setRatingFilter] = useState("ALL"); // 'ALL' | '5' | '4' | '3' | '2' | '1'
+  const [statusFilter, setStatusFilter] = useState("ALL");
+  const [ratingFilter, setRatingFilter] = useState("ALL");
   const [isRatingDropdownOpen, setIsRatingDropdownOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedReview, setSelectedReview] = useState(null);
 
-  // Stats Card data (sesuai referensi: 86 total, 12 belum dibaca, 4.7 / 5 rating)
-  const totalMasukan = 86;
-  const belumDibaca = reviews.filter((r) => !r.isRead).length || 12;
-  const averageRating = "4.7";
+  // Fetch reviews dari BE
+  useEffect(() => {
+    let isMounted = true;
+    setIsLoading(true);
+    import("../../services/reviewService")
+      .then(({ getAdminReviews }) => getAdminReviews({ limit: 100 }))
+      .then((result) => {
+        if (!isMounted) return;
+        const items = Array.isArray(result) ? result : result?.data ?? [];
+        // Normalize field BE → field yang dipakai komponen
+        const normalized = items.map((r) => ({
+          id: r.id,
+          customerId: r.user?.id ?? "-",
+          customerName: r.user?.fullName ?? "Customer",
+          date: r.createdAt?.slice(0, 10) ?? "",
+          dateLabel: r.createdAt
+            ? new Date(r.createdAt).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })
+            : "-",
+          orderId: r.orderId ?? "-",
+          rating: r.rating ?? 5,
+          comment: r.comment ?? "-",
+          orderedItems: r.order?.items?.map((i) => i.menu?.name ?? i.name).join(", ") ?? "-",
+          isRead: r.isRead ?? false,
+          avatarBg: "bg-[#FDE8D0]",
+          avatarText: "text-[#8C4A26]",
+        }));
+        setReviews(normalized);
+      })
+      .catch((err) => console.error("Gagal memuat reviews:", err))
+      .finally(() => { if (isMounted) setIsLoading(false); });
+    return () => { isMounted = false; };
+  }, []);
+
+  const totalMasukan = reviews.length;
+  const belumDibaca = reviews.filter((r) => !r.isRead).length;
+  const avgNum = reviews.length
+    ? (reviews.reduce((s, r) => s + (r.rating ?? 0), 0) / reviews.length).toFixed(1)
+    : "0.0";
+  const averageRating = avgNum;
 
   // Toggle status read
   const handleToggleRead = (id) => {

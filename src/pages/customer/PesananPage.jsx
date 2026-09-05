@@ -1,13 +1,22 @@
-import { Package } from "lucide-react";
+import { useEffect } from "react";
+import { Package, Loader2, AlertCircle } from "lucide-react";
 import { useOrder } from "../../context/OrderContext";
-import { orderStatusColor, ACTIVE_STATUSES } from "../../data/orderDummyData";
 import { formatCurrency } from "../../utils/formatters";
 
 const PesananPage = () => {
-  const { orders } = useOrder();
-  const activeOrders = orders.filter((order) =>
-    ACTIVE_STATUSES.includes(order.status)
-  );
+  const {
+    activeOrders,
+    isLoadingOrders,
+    ordersError,
+    fetchOrders,
+    orderStatusLabel,
+    orderStatusColor,
+  } = useOrder();
+
+  useEffect(() => {
+    // Fetch pesanan aktif saat halaman dibuka
+    fetchOrders({ status: "PAID,IN_KITCHEN,ON_DELIVERY,DELIVERED,PENDING_PAYMENT" });
+  }, [fetchOrders]);
 
   return (
     <section className="max-w-4xl mx-auto px-6 lg:px-10 py-14">
@@ -19,7 +28,24 @@ const PesananPage = () => {
         konfirmasi admin sampai diantar ke alamatmu.
       </p>
 
-      {activeOrders.length === 0 ? (
+      {isLoadingOrders ? (
+        <div className="flex items-center justify-center gap-3 py-16 text-coffee-500/70">
+          <Loader2 size={24} className="animate-spin text-accent-600" />
+          <span>Memuat pesanan...</span>
+        </div>
+      ) : ordersError ? (
+        <div className="bg-red-50 border border-red-200 rounded-2xl p-8 text-center">
+          <AlertCircle size={28} className="text-red-400 mx-auto mb-3" />
+          <p className="text-red-600 font-semibold">Gagal memuat pesanan</p>
+          <p className="text-red-400 text-sm mt-1">{ordersError}</p>
+          <button
+            onClick={() => fetchOrders({ status: "PAID,IN_KITCHEN,ON_DELIVERY,DELIVERED,PENDING_PAYMENT" })}
+            className="mt-4 px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold rounded-full transition-colors"
+          >
+            Coba Lagi
+          </button>
+        </div>
+      ) : activeOrders.length === 0 ? (
         <div className="bg-white border border-coffee-100/60 rounded-2xl p-10 text-center text-coffee-500/70">
           Belum ada pesanan yang sedang berjalan. Yuk pilih menu favoritmu dulu!
         </div>
@@ -36,20 +62,34 @@ const PesananPage = () => {
 
               <div className="flex-1">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="font-bold text-coffee-800">{order.id}</p>
+                  <p className="font-bold text-coffee-800">
+                    {order.orderNumber ?? order.id}
+                  </p>
                   <span
-                    className={`text-xs font-semibold px-3 py-1 rounded-full ${orderStatusColor[order.status]}`}
+                    className={`text-xs font-semibold px-3 py-1 rounded-full ${
+                      orderStatusColor[order.status] ?? "bg-gray-100 text-gray-600"
+                    }`}
                   >
-                    {order.status}
+                    {orderStatusLabel[order.status] ?? order.status}
                   </span>
                 </div>
                 <p className="text-sm text-coffee-500/80 mt-1">
-                  {order.items.map((it) => `${it.name} ×${it.qty}`).join(", ")}
+                  {order.items
+                    ?.map((it) => `${it.menu?.name ?? it.name} ×${it.quantity ?? it.qty}`)
+                    .join(", ")}
                 </p>
                 <div className="flex items-center justify-between mt-3">
-                  <p className="text-xs text-coffee-400">{order.date}</p>
+                  <p className="text-xs text-coffee-400">
+                    {order.createdAt
+                      ? new Date(order.createdAt).toLocaleDateString("id-ID", {
+                          day: "numeric",
+                          month: "long",
+                          year: "numeric",
+                        })
+                      : order.date}
+                  </p>
                   <p className="font-semibold text-coffee-700">
-                    {formatCurrency(order.total)}
+                    {formatCurrency(order.totalPrice ?? order.total)}
                   </p>
                 </div>
               </div>
