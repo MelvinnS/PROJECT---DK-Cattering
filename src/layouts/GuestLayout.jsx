@@ -8,12 +8,19 @@ import { useLocation } from "react-router-dom";
 const GuestLayout = () => {
   const { cartCount } = useOrder();
   const location = useLocation();
+  const isLanding = location.pathname === "/";
   const barVisible = cartCount > 0 && location.pathname !== "/checkout";
 
   return (
-    <div className={`min-h-screen flex flex-col bg-cream-50 ${barVisible ? "pb-24" : ""}`}>
+    <div
+      className={`min-h-screen flex flex-col overflow-x-clip ${
+        isLanding ? "bg-scoop-cream" : "bg-cream-50"
+      } ${barVisible ? "pb-24" : ""}`}
+    >
       <Navbar />
-      <main className="flex-1">
+      {/* Navbar bersifat fixed (melayang di atas hero), jadi halaman lain
+          diberi ruang di atas. Beranda justru full-bleed sampai ke atas. */}
+      <main className={`flex-1 ${isLanding ? "" : "pt-24 lg:pt-28"}`}>
         <AnimatedOutlet />
       </main>
       <Footer />
