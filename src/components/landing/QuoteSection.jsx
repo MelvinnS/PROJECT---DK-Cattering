@@ -7,7 +7,8 @@ const QuoteSection = () => {
     <section
       id="tentang"
       data-nav="dark"
-      className="relative bg-scoop-cream overflow-hidden min-h-[520px] lg:min-h-[640px] flex items-center justify-center px-6 py-28 lg:py-36"
+      className="relative overflow-hidden min-h-[520px] lg:min-h-[640px] flex items-center justify-center px-6 py-28 lg:py-36"
+      style={{ background: "#FBF3E7" }}
     >
       {/* Lingkaran Orbit di Belakang Teks (di sebelah kanan) */}
       <div

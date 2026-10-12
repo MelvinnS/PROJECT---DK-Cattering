@@ -14,7 +14,7 @@ const GuestLayout = () => {
   return (
     <div
       className={`min-h-screen flex flex-col overflow-x-clip ${
-        isLanding ? "bg-scoop-cream" : "bg-cream-50"
+        isLanding ? "bg-[#C48259]" : "bg-[#FBF3E7]"
       }`}
     >
       <Navbar />

@@ -181,7 +181,7 @@ const HeroSection = () => {
         </div>
       </div>
 
-      {/* Gelombang krim di bawah hero dengan warna #FFF0CD (sama persis dengan latar section quotes agar menyatu sempurna) */}
+      {/* Gelombang krim di bawah hero — warna #FBF3E7 sama persis dengan latar section quotes agar menyatu */}
       <svg
         aria-hidden="true"
         className="absolute bottom-[-1px] left-0 w-full h-[22%] lg:h-[32%] z-[9] pointer-events-none"
@@ -189,7 +189,7 @@ const HeroSection = () => {
         preserveAspectRatio="none"
       >
         <path
-          fill="#FFF0CD"
+          fill="#FBF3E7"
           d="M0,170 C90,120 180,95 270,120 C360,145 420,240 510,240 C600,240 660,110 750,110 C840,110 900,210 990,210 C1080,210 1140,80 1230,80 C1320,80 1390,150 1440,180 L1440,320 L0,320 Z"
         />
       </svg>
