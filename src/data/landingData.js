@@ -1,62 +1,70 @@
-// Data halaman utama (Beranda). Ubah teks/foto/warna di sini — tidak perlu
-// menyentuh komponen. Foto memakai aset lokal di src/assets/images.
+// Data halaman utama (Beranda).
+// Menggunakan foto makanan dari assets lokal (menu1.jpg - menu4.jpg).
 import menu1 from "../assets/images/menu1.jpg";
 import menu2 from "../assets/images/menu2.jpg";
 import menu3 from "../assets/images/menu3.jpg";
 import menu4 from "../assets/images/menu4.jpg";
 
-// id/nama/harga sengaja sama dengan data keranjang yang sudah ada.
-// bg = warna latar hero untuk menu tersebut (berganti halus saat slide).
 export const landingMenus = [
   {
     id: 1,
-    name: "Nasi Ayam Katsu",
-    price: 18000,
+    name: "Nasi Ayam Katsu Renyah",
+    title: "Nasi Ayam Katsu",
+    price: "Rp 18.000",
+    priceValue: 18000,
     image: menu1,
     tagline: "Ayam katsu renyah dengan saus spesial",
-    bg: { light: "#CC7D59", dark: "#A8553A" },
+    bg: { light: "#C48259", dark: "#A6633E" },
   },
   {
     id: 2,
-    name: "Nasi Ayam Crispy",
-    price: 17000,
+    name: "Nasi Ayam Crispy Gurih",
+    title: "Nasi Ayam Crispy",
+    price: "Rp 17.000",
+    priceValue: 17000,
     image: menu2,
     tagline: "Ayam crispy gurih dengan sambal racikan",
-    bg: { light: "#62B27D", dark: "#3E8458" },
+    bg: { light: "#C48259", dark: "#A6633E" },
   },
   {
     id: 3,
-    name: "Nasi Ayam Bakar",
-    price: 19000,
+    name: "Nasi Ayam Bakar Bumbu",
+    title: "Nasi Ayam Bakar",
+    price: "Rp 19.000",
+    priceValue: 19000,
     image: menu3,
-    tagline: "Ayam bakar bumbu meresap, lalapan segar",
-    bg: { light: "#EE7F5E", dark: "#D1563A" },
+    tagline: "Ayam bakar bumbu meresap lalapan segar",
+    bg: { light: "#C48259", dark: "#A6633E" },
   },
   {
     id: 4,
-    name: "Nasi Beef Teriyaki",
-    price: 20000,
+    name: "Nasi Beef Teriyaki Spesial",
+    title: "Nasi Beef Teriyaki",
+    price: "Rp 20.000",
+    priceValue: 20000,
     image: menu4,
-    tagline: "Potongan juicy dengan saus teriyaki homemade",
-    bg: { light: "#D69C70", dark: "#B97A52" },
+    tagline: "Potongan juicy dengan saus teriyaki",
+    bg: { light: "#C48259", dark: "#A6633E" },
   },
 ];
 
 export const heroCopy = {
-  titleLine1: "Rasa Bahagia",
-  titleLine2: "Di Setiap Suapan",
+  titleLine1: "Taste Joy in",
+  titleLine2: "Every Bite",
   description:
     "Catering harian dengan menu pilihan dan bahan segar berkualitas, dimasak setiap hari dan diantar sesuai jadwal pilihanmu.",
-  reviewsTitle: "10K+ Ulasan",
-  reviewsSubtitle: "Pelanggan puas dengan layanan kami",
-  portions: ["S", "M", "L"],
+  reviewsTitle: "10K+ Reviews",
+  reviewsSubtitle: "Customers are satisfied",
 };
 
-export const quoteText =
-  "Kami percaya pada kehangatan masakan rumah di setiap suapan. Menu kami dimasak segar setiap hari dari bahan pilihan dan bumbu racikan sendiri.";
+export const quoteCopy = {
+  quote: "“Psikolog itu mahal, jadi saya duduk di kursi indomart sambil makan Orastrix, beban hidup hilang.”",
+  highlight: "Orastrix",
+  author: "ISAAC NEWTON",
+};
 
 export const menuSectionCopy = {
-  title: "Jelajahi Menu\nLezat Kami",
+  title: "Explore Our\nDelicious Taste",
   description:
     "Setiap porsi adalah perayaan rasa. Dimasak dengan cinta, bahan segar, dan bumbu yang meresap sempurna.",
 };
@@ -64,31 +72,31 @@ export const menuSectionCopy = {
 export const faqCopy = {
   title: "FAQ's",
   description:
-    "Kami rangkum pertanyaan yang paling sering ditanyakan supaya pengalaman pesanmu semulus mungkin.",
+    "We've answered the most common questions to make your experience as smooth as our ice cream.",
   items: [
     {
-      emoji: "🍱",
-      question: "Apa yang membuat catering kami berbeda?",
+      emoji: "🍨",
+      question: "What makes your ice cream different?",
       answer:
         "Kami hanya memakai bahan segar pilihan tanpa pengawet buatan. Setiap porsi dimasak dalam jumlah terbatas setiap hari agar kualitas rasa tetap terjaga.",
     },
     {
-      emoji: "🚚",
-      question: "Apakah tersedia antar ke rumah atau kantor?",
+      emoji: "🛺",
+      question: "Do you offer home delivery?",
       answer:
-        "Ya! Pesanan diantar sesuai jadwal pengiriman yang kamu pilih saat checkout, khusus area Malang dan sekitarnya.",
+        "Ya! Pesanan diantar langsung ke rumah atau kantor sesuai jadwal pengiriman yang kamu tentukan saat checkout.",
     },
     {
-      emoji: "🌶️",
-      question: "Bisa request tanpa pedas atau tanpa bahan tertentu?",
+      emoji: "🌱",
+      question: "Is your ice cream vegan or dairy-free?",
       answer:
-        "Bisa. Tulis catatan pada pesananmu dan tim kami akan menyesuaikan sebisa mungkin.",
+        "Tersedia varian pilihan ramah nabati dengan bahan nabati berkualitas tanpa mengurangi kelezatan rasa.",
     },
     {
       emoji: "📦",
-      question: "Bisa pesan dalam jumlah besar untuk acara?",
+      question: "Can I order in bulk for events/parties?",
       answer:
-        "Tentu. Hubungi admin lewat WhatsApp untuk pesanan acara, arisan, atau kantor — kami siapkan penawaran khusus.",
+        "Tentu saja! Hubungi admin lewat WhatsApp untuk pesanan acara, arisan, atau pesta keluarga dengan penawaran khusus.",
     },
   ],
 };

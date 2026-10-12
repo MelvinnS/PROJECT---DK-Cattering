@@ -17,10 +17,10 @@ import { useOrder } from "../../context/OrderContext";
 import siteConfig from "../../data/siteConfig";
 
 const pillLinks = [
-  { label: "Beranda", to: "/" },
-  { label: "Menu", to: "/menu" },
-  { label: "Tentang", to: "/#tentang" },
-  { label: "Kontak", to: "/#kontak" },
+  { label: "HOME", to: "/" },
+  { label: "MENU", to: "/menu" },
+  { label: "ABOUT", to: "/#tentang" },
+  { label: "CONTACT", to: "/#kontak" },
 ];
 
 const Navbar = () => {
@@ -171,21 +171,21 @@ const Navbar = () => {
         {/* Logo */}
         <Link
           to="/"
-          className={`font-display display-bold text-xl lg:text-2xl leading-none transition-colors duration-300 ${toneText}`}
+          className={`font-display display-bold text-2xl lg:text-3xl leading-none transition-colors duration-300 ${toneText}`}
         >
-          {siteConfig.brandFullName}
+          Creamy
         </Link>
 
         {/* Pill navigasi (desktop) */}
-        <ul className="hidden lg:flex absolute left-1/2 -translate-x-1/2 items-center gap-1 rounded-full bg-white p-1.5 shadow-[0_4px_14px_rgba(0,0,0,0.12)]">
+        <ul className="hidden lg:flex absolute left-1/2 -translate-x-1/2 items-center gap-1 rounded-full bg-white px-2 py-1.5 shadow-[0_4px_20px_rgba(0,0,0,0.15)]">
           {pillLinks.map((link) => (
             <li key={link.label}>
               <Link
                 to={link.to}
-                className={`block rounded-full px-6 py-2 text-[10px] font-semibold uppercase tracking-wide transition-colors ${
+                className={`block rounded-full px-6 py-2 text-[11px] font-bold tracking-wide transition-all ${
                   isActive(link.to)
-                    ? "bg-scoop-ink text-white shadow-[0_2px_6px_rgba(0,0,0,0.25)]"
-                    : "text-scoop-ink hover:bg-black/5"
+                    ? "bg-[#181818] text-white shadow-[0_3px_10px_rgba(0,0,0,0.3)]"
+                    : "text-[#222222] hover:text-black hover:bg-black/5"
                 }`}
               >
                 {link.label}

@@ -15,12 +15,12 @@ const GuestLayout = () => {
     <div
       className={`min-h-screen flex flex-col overflow-x-clip ${
         isLanding ? "bg-scoop-cream" : "bg-cream-50"
-      } ${barVisible ? "pb-24" : ""}`}
+      }`}
     >
       <Navbar />
       {/* Navbar bersifat fixed (melayang di atas hero), jadi halaman lain
           diberi ruang di atas. Beranda justru full-bleed sampai ke atas. */}
-      <main className={`flex-1 ${isLanding ? "" : "pt-24 lg:pt-28"}`}>
+      <main className={`flex-1 ${isLanding ? "" : "pt-24 lg:pt-28"} ${barVisible ? "pb-28" : ""}`}>
         <AnimatedOutlet />
       </main>
       <Footer />

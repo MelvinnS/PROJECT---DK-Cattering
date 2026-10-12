@@ -1,5 +1,4 @@
-// Ikon brand sederhana (inline SVG) — lucide-react versi baru tidak lagi
-// menyertakan ikon brand, jadi dibuat sendiri supaya tidak tergantung versi.
+// Ikon brand sederhana (inline SVG)
 const base = {
   viewBox: "0 0 24 24",
   fill: "none",
@@ -14,6 +13,19 @@ export const InstagramIcon = ({ size = 16, ...props }) => (
     <rect x="3" y="3" width="18" height="18" rx="5" />
     <circle cx="12" cy="12" r="4" />
     <circle cx="17.2" cy="6.8" r="0.8" fill="currentColor" stroke="none" />
+  </svg>
+);
+
+export const WhatsAppIcon = ({ size = 16, ...props }) => (
+  <svg width={size} height={size} {...base} {...props}>
+    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+  </svg>
+);
+
+export const GlobeIcon = ({ size = 16, ...props }) => (
+  <svg width={size} height={size} {...base} {...props}>
+    <circle cx="12" cy="12" r="10" />
+    <path d="M12 2a14.5 14.5 0 0 0 0 20M12 2a14.5 14.5 0 0 1 0 20M2 12h20" />
   </svg>
 );
 

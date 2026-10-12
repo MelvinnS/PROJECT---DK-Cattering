@@ -1,73 +1,76 @@
-import { useRef } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
-import { landingMenus, quoteText } from "../../data/landingData";
-
-// Foto menu yang melayang & sedikit blur di sekeliling teks (parallax saat scroll).
-// Posisi & ukuran mengikuti prototype: satu besar di kiri-tengah, satu besar di
-// kanan-atas, dan dua kecil di sisi berlawanan.
-const floaters = [
-  { img: 0, size: "clamp(110px,10.5vw,165px)", pos: { left: "6%", top: "50%" }, speed: -60 },
-  { img: 1, size: "clamp(34px,3.6vw,56px)", pos: { left: "14%", top: "24%" }, speed: 40 },
-  { img: 2, size: "clamp(90px,8.6vw,135px)", pos: { right: "4%", top: "19%" }, speed: -90 },
-  { img: 3, size: "clamp(44px,4.8vw,74px)", pos: { right: "9%", top: "61%" }, speed: 50 },
-];
-
-const Floater = ({ item, progress }) => {
-  const y = useTransform(progress, [0, 1], [-item.speed, item.speed]);
-  return (
-    <motion.div
-      aria-hidden="true"
-      className="absolute pointer-events-none hidden sm:block"
-      style={{ ...item.pos, width: item.size, height: item.size, y }}
-    >
-      <img
-        src={landingMenus[item.img].image}
-        alt=""
-        draggable={false}
-        className="w-full h-full object-contain blur-[2.5px] opacity-90 drop-shadow-[0_14px_14px_rgba(120,66,34,0.25)]"
-      />
-    </motion.div>
-  );
-};
+import { motion } from "framer-motion";
+import { Star } from "lucide-react";
+import { quoteCopy } from "../../data/landingData";
 
 const QuoteSection = () => {
-  const ref = useRef(null);
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start end", "end start"],
-  });
-
   return (
     <section
       id="tentang"
-      ref={ref}
       data-nav="dark"
-      className="relative bg-scoop-cream overflow-hidden min-h-[100svh] flex items-center justify-center px-6 pt-28 pb-44 lg:pt-32 lg:pb-52"
+      className="relative bg-scoop-cream overflow-hidden min-h-[520px] lg:min-h-[640px] flex items-center justify-center px-6 py-28 lg:py-36"
     >
-      {floaters.map((f) => (
-        <Floater key={f.img} item={f} progress={scrollYProgress} />
-      ))}
-
-      <motion.p
-        initial={{ opacity: 0, y: 40 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, amount: 0.3 }}
-        transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-        className="relative z-10 font-display text-scoop-3d text-[clamp(1.9rem,4.2vw,4rem)] leading-[1.2] text-center max-w-[22ch] sm:max-w-4xl lg:max-w-5xl"
+      {/* Lingkaran Orbit di Belakang Teks (di sebelah kanan) */}
+      <div
+        aria-hidden="true"
+        className="absolute right-[-8%] lg:right-[8%] top-1/2 -translate-y-1/2 w-[340px] h-[340px] sm:w-[500px] sm:h-[500px] lg:w-[620px] lg:h-[620px] pointer-events-none"
       >
-        {quoteText}
-      </motion.p>
+        {/* Orbit 1: Luar */}
+        <div className="absolute inset-0 rounded-full border border-black/[0.08]" />
+        {/* Orbit 2: Tengah */}
+        <div className="absolute inset-[15%] rounded-full border border-dashed border-black/[0.12]" />
+        {/* Orbit 3: Dalam */}
+        <div className="absolute inset-[32%] rounded-full border border-black/[0.09]" />
+        {/* Orbit 4: Pusat */}
+        <div className="absolute inset-[48%] rounded-full border border-black/[0.07]" />
+      </div>
 
-      {/* Gelombang cokelat -> warnanya sama dengan latar section menu (#BA7E55),
-          lebih gelap & lebih tinggi dari sebelumnya, bentuk dari prototype. */}
+      <div className="relative z-10 max-w-4xl mx-auto w-full">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.3 }}
+          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+          className="flex flex-col items-start"
+        >
+          {/* 5 Bintang Emas/Oranye di Atas */}
+          <div className="flex items-center gap-1.5 mb-8">
+            {[...Array(5)].map((_, i) => (
+              <Star
+                key={i}
+                size={22}
+                className="fill-[#F59E0B] text-[#F59E0B]"
+              />
+            ))}
+          </div>
+
+          {/* Teks Quotes: Tiru tipografi & highlight Orastrix */}
+          <blockquote className="font-display text-[#181818] text-[2rem] sm:text-[2.6rem] lg:text-[3.2rem] leading-[1.22] tracking-tight font-bold text-left">
+            “Psikolog itu mahal, jadi saya duduk di kursi indomart sambil makan{" "}
+            <span className="relative inline-block text-[#D97706] italic font-serif underline decoration-[#D97706] underline-offset-8 decoration-2">
+              Orastrix
+            </span>
+            , beban hidup hilang.”
+          </blockquote>
+
+          {/* Penulis Quote: — ISAAC NEWTON */}
+          <div className="mt-8 flex items-center gap-3">
+            <span className="w-8 h-[2px] bg-black/40" />
+            <p className="text-[12px] sm:text-[13px] font-bold tracking-[0.22em] text-black/70 uppercase">
+              {quoteCopy.author}
+            </p>
+          </div>
+        </motion.div>
+      </div>
+
+      {/* Gelombang cokelat menyambung ke latar section menu (#C48259) */}
       <svg
         aria-hidden="true"
-        className="absolute bottom-[-1px] left-0 w-full h-[18%] min-h-[100px]"
+        className="absolute bottom-[-1px] left-0 w-full h-[18%] min-h-[100px] pointer-events-none"
         viewBox="0 0 1440 200"
         preserveAspectRatio="none"
       >
         <path
-          fill="#BA7E55"
+          fill="#C48259"
           d="M0,57 C48,92 96,161 144,161 C216,161 288,48 360,48 C425,48 489,205 554,205 C614,205 674,57 734,57 C801,57 869,173 936,173 C998,173 1061,57 1123,57 C1181,57 1238,173 1296,173 C1344,173 1392,110 1440,78 L1440,200 L0,200 Z"
         />
       </svg>

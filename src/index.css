@@ -10,7 +10,7 @@ html {
 
 body {
   font-family: "Poppins", system-ui, sans-serif;
-  background-color: #FBF3E7;
+  background-color: #FFF0CD;
 }
 
 /* Hero product showcase: foto masuk dari kanan-bawah (rotate + fade),
@@ -125,15 +125,15 @@ body {
 /* Font display (Bagel Fat One) hanya punya satu bobot (400) yang memang sudah
    tebal; jangan biarkan browser menebalkan palsu. */
 .font-display {
-  font-weight: 400;
-  font-synthesis: none;
+  font-family: "Bagel Fat One", "Fredoka", "Poppins", sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
-/* Tambahan ketebalan halus untuk judul display, meniru huruf "gemuk" di prototype. */
+/* Ketebalan standar tegas & nyaman dibaca tanpa distorsi */
 .display-bold {
-  -webkit-text-stroke: 0.03em currentColor;
-  paint-order: stroke fill;
-  letter-spacing: 0.005em;
+  font-weight: 700;
+  letter-spacing: -0.015em;
 }
 
 /* Teks 3D tebal (section quotes halaman utama): isi cokelat, outline cokelat
