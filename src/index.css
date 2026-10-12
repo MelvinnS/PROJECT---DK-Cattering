@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Bagel+Fat+One&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -121,3 +121,22 @@ body {
   }
 }
 
+
+/* Teks 3D tebal (section quote halaman utama). */
+.text-scoop-3d {
+  color: #a35d34;
+  -webkit-text-stroke: 1.2px #7a4222;
+  paint-order: stroke fill;
+  text-shadow: 0 3px 0 #d9a77c, 0 6px 0 rgba(122, 66, 34, 0.28);
+}
+
+/* Tombol 3D (pill dengan "alas" gelap) ala video konsep. */
+.btn-3d {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.btn-3d:hover {
+  transform: translateY(-2px);
+}
+.btn-3d:active {
+  transform: translateY(2px);
+}
