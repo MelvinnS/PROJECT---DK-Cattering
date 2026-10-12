@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 /* Font (Bagel Fat One + Poppins) dimuat lewat <link> di index.html. */
+=======
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Bagel+Fat+One&display=swap');
+>>>>>>> 8a55db0e6b2fec7204f09fd09dfaa4a54f6c88ca
 
 @tailwind base;
 @tailwind components;
@@ -122,6 +126,7 @@ body {
 }
 
 
+<<<<<<< HEAD
 /* Font display (Bagel Fat One) hanya punya satu bobot (400) yang memang sudah
    tebal; jangan biarkan browser menebalkan palsu. */
 .font-display {
@@ -144,6 +149,14 @@ body {
   paint-order: stroke fill;
   text-shadow: 0 0.07em 0 #6e3b1b;
   letter-spacing: 0.005em;
+=======
+/* Teks 3D tebal (section quote halaman utama). */
+.text-scoop-3d {
+  color: #a35d34;
+  -webkit-text-stroke: 1.2px #7a4222;
+  paint-order: stroke fill;
+  text-shadow: 0 3px 0 #d9a77c, 0 6px 0 rgba(122, 66, 34, 0.28);
+>>>>>>> 8a55db0e6b2fec7204f09fd09dfaa4a54f6c88ca
 }
 
 /* Tombol 3D (pill dengan "alas" gelap) ala video konsep. */

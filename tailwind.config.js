@@ -34,8 +34,12 @@ export default {
         // Palet halaman utama (mengikuti video konsep): krim, cokelat, hijau.
         scoop: {
           cream: "#FFF0CD",
+<<<<<<< HEAD
           tan: "#BA7E55", // warna latar section menu = warna gelombang section quotes
           ribbon: "#AA6D45",
+=======
+          tan: "#C28862",
+>>>>>>> 8a55db0e6b2fec7204f09fd09dfaa4a54f6c88ca
           brown: "#B35F3E",
           green: "#3F9060",
           greenDark: "#2F6E48",
@@ -46,7 +50,11 @@ export default {
       },
       fontFamily: {
         sans: ["Poppins", "system-ui", "sans-serif"],
+<<<<<<< HEAD
         display: ['"Bagel Fat One"', '"Arial Rounded MT Bold"', "Poppins", "system-ui", "sans-serif"],
+=======
+        display: ['"Bagel Fat One"', "Poppins", "system-ui", "sans-serif"],
+>>>>>>> 8a55db0e6b2fec7204f09fd09dfaa4a54f6c88ca
       },
       borderRadius: {
         xl2: "1.5rem",

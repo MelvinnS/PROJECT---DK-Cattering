@@ -171,7 +171,11 @@ const Navbar = () => {
         {/* Logo */}
         <Link
           to="/"
+<<<<<<< HEAD
           className={`font-display display-bold text-xl lg:text-2xl leading-none transition-colors duration-300 ${toneText}`}
+=======
+          className={`font-display text-xl lg:text-2xl leading-none transition-colors duration-300 ${toneText}`}
+>>>>>>> 8a55db0e6b2fec7204f09fd09dfaa4a54f6c88ca
         >
           {siteConfig.brandFullName}
         </Link>
@@ -182,9 +186,15 @@ const Navbar = () => {
             <li key={link.label}>
               <Link
                 to={link.to}
+<<<<<<< HEAD
                 className={`block rounded-full px-6 py-2 text-[10px] font-semibold uppercase tracking-wide transition-colors ${
                   isActive(link.to)
                     ? "bg-scoop-ink text-white shadow-[0_2px_6px_rgba(0,0,0,0.25)]"
+=======
+                className={`block rounded-full px-5 py-2 text-[11px] font-semibold uppercase tracking-wide transition-colors ${
+                  isActive(link.to)
+                    ? "bg-scoop-ink text-white"
+>>>>>>> 8a55db0e6b2fec7204f09fd09dfaa4a54f6c88ca
                     : "text-scoop-ink hover:bg-black/5"
                 }`}
               >

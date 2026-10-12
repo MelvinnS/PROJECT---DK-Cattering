@@ -12,8 +12,13 @@ const AUTOPLAY_MS = 4800;
 // offset 0 = utama, 1 & 2 = antrean di kanan (kecil + blur), 3 = baru saja lewat.
 const desktopSlots = [
   { x: "0vw", scale: 1, opacity: 1, blur: 0, rotate: 0, z: 10 },
+<<<<<<< HEAD
   { x: "23vw", scale: 0.6, opacity: 1, blur: 3, rotate: 4, z: 8 },
   { x: "36vw", scale: 0.34, opacity: 0.95, blur: 5, rotate: 8, z: 6 },
+=======
+  { x: "25vw", scale: 0.6, opacity: 1, blur: 3, rotate: 6, z: 8 },
+  { x: "39vw", scale: 0.36, opacity: 0.95, blur: 5, rotate: 12, z: 6 },
+>>>>>>> 8a55db0e6b2fec7204f09fd09dfaa4a54f6c88ca
   { x: "-24vw", scale: 0.5, opacity: 0, blur: 6, rotate: -22, z: 4 },
 ];
 const mobileSlots = [
@@ -101,20 +106,33 @@ const HeroSection = () => {
         </div>
 
         {/* Teks */}
+<<<<<<< HEAD
         <div className="relative z-20 pt-28 lg:pt-0 lg:absolute lg:left-12 lg:top-[43%] lg:-translate-y-1/2 lg:w-[40%]">
           <h1 className="font-display display-bold text-[2.7rem] sm:text-6xl lg:text-[clamp(3rem,3.8vw,5.2rem)] leading-[1.08] text-white drop-shadow-[0_3px_0_rgba(0,0,0,0.1)] lg:whitespace-nowrap">
+=======
+        <div className="relative z-20 pt-28 lg:pt-0 lg:absolute lg:left-12 lg:top-[40%] lg:-translate-y-1/2 lg:w-[34%]">
+          <h1 className="font-display text-[2.6rem] sm:text-6xl lg:text-[4.4rem] xl:text-[5rem] leading-[1.05] tracking-tight text-white drop-shadow-[0_3px_0_rgba(0,0,0,0.08)]">
+>>>>>>> 8a55db0e6b2fec7204f09fd09dfaa4a54f6c88ca
             {heroCopy.titleLine1}
             <br />
             {heroCopy.titleLine2}
           </h1>
+<<<<<<< HEAD
           <p className="mt-5 text-[12px] sm:text-[13px] leading-relaxed text-white/90 max-w-[19rem] lg:max-w-[20rem]">
+=======
+          <p className="mt-5 text-[13px] sm:text-sm leading-relaxed text-white/90 max-w-[19rem]">
+>>>>>>> 8a55db0e6b2fec7204f09fd09dfaa4a54f6c88ca
             {heroCopy.description}
           </p>
           <div className="mt-6 flex items-center gap-3 flex-wrap">
             <button
               type="button"
               onClick={() => navigate("/menu")}
+<<<<<<< HEAD
               className="btn-3d rounded-full bg-scoop-cream text-scoop-ink text-[10px] font-bold uppercase tracking-wide px-6 py-3 shadow-[0_4px_0_#C9B07A]"
+=======
+              className="btn-3d rounded-full bg-scoop-cream text-scoop-ink text-[11px] font-bold uppercase tracking-wide px-6 py-3 shadow-[0_4px_0_#C9B07A]"
+>>>>>>> 8a55db0e6b2fec7204f09fd09dfaa4a54f6c88ca
             >
               Pesan Sekarang
             </button>
@@ -125,7 +143,11 @@ const HeroSection = () => {
                   .getElementById("menu")
                   ?.scrollIntoView({ behavior: "smooth" })
               }
+<<<<<<< HEAD
               className="btn-3d rounded-full bg-scoop-maroon text-white text-[10px] font-bold uppercase tracking-wide px-6 py-3 shadow-[0_4px_0_#2B0A04]"
+=======
+              className="btn-3d rounded-full bg-scoop-maroon text-white text-[11px] font-bold uppercase tracking-wide px-6 py-3 shadow-[0_4px_0_#2B0A04]"
+>>>>>>> 8a55db0e6b2fec7204f09fd09dfaa4a54f6c88ca
             >
               Lihat Menu
             </button>
@@ -148,7 +170,11 @@ const HeroSection = () => {
             return (
               <div
                 key={menu.id}
+<<<<<<< HEAD
                 className="absolute left-1/2 lg:left-[54%] top-[44%] lg:top-[50%] w-[min(78vw,380px)] lg:w-[min(36vw,560px)] aspect-square"
+=======
+                className="absolute left-1/2 lg:left-[52%] top-[44%] lg:top-[47%] w-[min(78vw,380px)] lg:w-[min(36vw,560px)] aspect-square"
+>>>>>>> 8a55db0e6b2fec7204f09fd09dfaa4a54f6c88ca
                 style={{ transform: "translate(-50%, -50%)", zIndex: slot.z }}
               >
                 <motion.div
@@ -194,6 +220,7 @@ const HeroSection = () => {
         </div>
       </div>
 
+<<<<<<< HEAD
       {/* Gelombang krim di bawah hero. Bentuk & tinggi diukur dari prototype
           (puncak sekitar 1/3 tinggi hero). z-[9]: berada di belakang foto utama
           (z-10) sehingga foto menumpuk di atas gelombang seperti di video. */}
@@ -201,11 +228,22 @@ const HeroSection = () => {
         aria-hidden="true"
         className="absolute bottom-[-1px] left-0 w-full h-[21%] lg:h-[33%] z-[9] pointer-events-none"
         viewBox="0 0 1440 330"
+=======
+      {/* Gelombang krim di bawah hero */}
+      <svg
+        aria-hidden="true"
+        className="absolute bottom-[-1px] left-0 w-full h-[19%] min-h-[110px] z-20 animate-wave-sway pointer-events-none"
+        viewBox="0 0 1440 300"
+>>>>>>> 8a55db0e6b2fec7204f09fd09dfaa4a54f6c88ca
         preserveAspectRatio="none"
       >
         <path
           fill="#FFF0CD"
+<<<<<<< HEAD
           d="M0,150 C50,136 100,107 150,107 C215,107 280,207 345,207 C393,207 442,99 490,56 C509,39 528,15 547,15 C578,15 609,35 640,55 C690,87 740,180 790,180 C833,180 877,95 920,95 C953,95 987,103 1020,115 C1069,132 1117,187 1166,187 C1209,187 1253,95 1296,95 C1344,95 1392,145 1440,170 L1440,330 L0,330 Z"
+=======
+          d="M0,175 C110,150 210,185 305,190 C405,198 450,62 565,52 C665,45 710,140 810,170 C905,198 985,142 1100,126 C1245,106 1350,150 1440,162 L1440,300 L0,300 Z"
+>>>>>>> 8a55db0e6b2fec7204f09fd09dfaa4a54f6c88ca
         />
       </svg>
 
