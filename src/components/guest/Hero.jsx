@@ -96,8 +96,7 @@ const Hero = () => {
 
             {/* Deskripsi */}
             <p className="mt-5 text-[#5C4532] text-sm sm:text-base md:text-lg leading-relaxed max-w-md font-normal">
-              Catering harian dengan menu pilihan dan bahan berkualitas, diantar
-              sesuai jadwal pilihanmu.
+             Catering harian dengan menu pilihan yang berbeda beda setiap harinya.
             </p>
 
             {/* Tombol CTA */}

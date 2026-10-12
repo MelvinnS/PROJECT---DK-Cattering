@@ -49,11 +49,11 @@ export const landingMenus = [
 ];
 
 export const heroCopy = {
-  titleLine1: "Taste Joy in",
-  titleLine2: "Every Bite",
+  titleLine1: "Cattering",
+  titleLine2: "Harian",
   description:
-    "Catering harian dengan menu pilihan dan bahan segar berkualitas, dimasak setiap hari dan diantar sesuai jadwal pilihanmu.",
-  reviewsTitle: "10K+ Reviews",
+    "Catering harian dengan menu pilihan yang berbeda beda setiap harinya.",
+  reviewsTitle: "1K+ Reviews",
   reviewsSubtitle: "Customers are satisfied",
 };
 

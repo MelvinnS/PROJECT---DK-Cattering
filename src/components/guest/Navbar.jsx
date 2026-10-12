@@ -173,7 +173,7 @@ const Navbar = () => {
           to="/"
           className={`font-display display-bold text-2xl lg:text-3xl leading-none transition-colors duration-300 ${toneText}`}
         >
-          Creamy
+          Dapoer Kuliner
         </Link>
 
         {/* Pill navigasi (desktop) */}
