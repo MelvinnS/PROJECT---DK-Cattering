@@ -1,17 +1,16 @@
-import { createContext, useContext, useMemo, useState } from "react";
-import { seedOrders } from "../data/orderDummyData";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import apiClient from "../services/apiClient";
+import { USE_MOCK_BACKEND } from "../config/appConfig";
 
 const OrderContext = createContext(undefined);
 
 let cartItemUid = 0;
 
 export const OrderProvider = ({ children }) => {
-  // Isi keranjang sementara (sebelum "Pesan Sekarang" ditekan).
   const [cartItems, setCartItems] = useState([]);
-  // Daftar pesanan yang sudah dibuat (Pesanan aktif + Riwayat).
-  // Diawali data dummy supaya halaman tidak kosong saat development.
-  const [orders, setOrders] = useState(seedOrders);
+  const [orders, setOrders] = useState([]);
 
+  // Tambah menu baru ke keranjang atau tambah qty kalau sudah ada.
   const addToCart = (menu) => {
     setCartItems((prev) => {
       const existing = prev.find((item) => item.menuId === menu.id);
@@ -38,9 +37,6 @@ export const OrderProvider = ({ children }) => {
     setCartItems((prev) => prev.filter((item) => item.menuId !== menuId));
   };
 
-  // Tambah 1 qty item yang SUDAH ada di keranjang (dipakai tombol "+" pada
-  // stepper). Kalau item belum ada, tidak melakukan apa-apa — pakai
-  // addToCart(menu) untuk menambah item baru pertama kali.
   const incrementQty = (menuId) => {
     setCartItems((prev) =>
       prev.map((item) =>
@@ -49,8 +45,6 @@ export const OrderProvider = ({ children }) => {
     );
   };
 
-  // Kurangi 1 qty item (dipakai tombol "-" pada stepper). Kalau qty jadi 0,
-  // item otomatis dihapus dari keranjang — persis pola stepper Gacoan dkk.
   const decrementQty = (menuId) => {
     setCartItems((prev) =>
       prev
@@ -74,25 +68,64 @@ export const OrderProvider = ({ children }) => {
   );
 
   /**
-   * Simulasi checkout/pembayaran (belum terhubung payment gateway/backend).
-   * Membuat 1 order baru berstatus "Menunggu Konfirmasi" dari isi keranjang,
-   * lalu mengosongkan keranjang. Nantinya order ini akan dikonfirmasi Admin
-   * lewat backend, dan status-nya berubah sampai akhirnya masuk Riwayat.
+   * Mengirim pesanan ke backend API POST /order/checkout
    */
-  const placeOrder = () => {
+  const placeOrder = async () => {
     if (cartItems.length === 0) return null;
 
-    const newOrder = {
-      id: `ORD-${Date.now()}`,
-      date: new Date().toISOString().slice(0, 10),
-      items: cartItems.map(({ name, qty, price }) => ({ name, qty, price })),
-      total: cartTotal,
-      status: "Menunggu Konfirmasi",
+    // Ambil default slot pengiriman dari database (slot pagi)
+    let slotId = "f540cfeb-73ab-4fd3-be18-7cfd0c4d4fa6";
+    try {
+      const slotsRes = await apiClient.get("/public/slots");
+      if (slotsRes.data && slotsRes.data.length > 0) {
+        slotId = slotsRes.data[0].id;
+      }
+    } catch {
+      // fallback ke slot default
+    }
+
+    const payload = {
+      items: cartItems.map((it) => ({
+        menuId: String(it.menuId),
+        quantity: it.qty,
+        specialNotes: "",
+      })),
+      deliveryMethod: "PICKUP",
+      slotId: slotId,
+      paymentType: "qris",
+      notes: "Pesanan melalui web",
     };
 
-    setOrders((prev) => [newOrder, ...prev]);
-    clearCart();
-    return newOrder;
+    if (!USE_MOCK_BACKEND) {
+      try {
+        const response = await apiClient.post("/order/checkout", payload);
+        const orderData = response.data;
+        const newOrder = {
+          id: orderData.orderNumber || `ORD-${Date.now()}`,
+          date: new Date().toISOString().slice(0, 10),
+          items: cartItems.map(({ name, qty, price }) => ({ name, qty, price })),
+          total: cartTotal,
+          status: "Menunggu Konfirmasi",
+        };
+        setOrders((prev) => [newOrder, ...prev]);
+        clearCart();
+        return newOrder;
+      } catch (err) {
+        console.error("Gagal melakukan checkout ke backend:", err);
+        throw err;
+      }
+    } else {
+      const newOrder = {
+        id: `ORD-${Date.now()}`,
+        date: new Date().toISOString().slice(0, 10),
+        items: cartItems.map(({ name, qty, price }) => ({ name, qty, price })),
+        total: cartTotal,
+        status: "Menunggu Konfirmasi",
+      };
+      setOrders((prev) => [newOrder, ...prev]);
+      clearCart();
+      return newOrder;
+    }
   };
 
   const value = {

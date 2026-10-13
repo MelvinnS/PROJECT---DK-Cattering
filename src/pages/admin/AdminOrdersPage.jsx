@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   Search,
@@ -8,6 +8,7 @@ import {
   ClipboardList,
   Clock,
   Check,
+  RefreshCw,
 } from "lucide-react";
 import { useAdminOrders } from "../../context/AdminOrderContext";
 import { dummyOrderStatusColor, dummyOrderStatusLabel } from "../../data/adminDummyData";
@@ -24,8 +25,16 @@ const statusFilterTabs = [
 ];
 
 const AdminOrdersPage = () => {
-  const { orders, acceptOrder, rejectOrder, batchAcceptOrders, batchRejectOrders } =
+  const { orders, loading, refreshOrders, acceptOrder, rejectOrder, batchAcceptOrders, batchRejectOrders } =
     useAdminOrders();
+
+  // Auto-refresh setiap 30 detik supaya pesanan baru muncul otomatis
+  useEffect(() => {
+    const interval = setInterval(() => {
+      refreshOrders();
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [refreshOrders]);
 
   const [search, setSearch] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("ALL");
@@ -128,13 +137,25 @@ const AdminOrdersPage = () => {
   return (
     <div className="flex flex-col gap-6 md:gap-7">
       {/* Header Halaman */}
-      <div>
-        <h1 className="text-2xl md:text-3xl font-extrabold text-coffee-800">
-          Kelola Pesanan
-        </h1>
-        <p className="text-coffee-500/80 mt-1 text-sm md:text-base">
-          Pantau, konfirmasi penerimaan, dan kelola seluruh alur pesanan pelanggan katering.
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-extrabold text-coffee-800">
+            Kelola Pesanan
+          </h1>
+          <p className="text-coffee-500/80 mt-1 text-sm md:text-base">
+            Pantau, konfirmasi penerimaan, dan kelola seluruh alur pesanan pelanggan katering.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={refreshOrders}
+          disabled={loading}
+          title="Refresh data pesanan"
+          className="shrink-0 inline-flex items-center gap-2 bg-white border border-coffee-200 text-coffee-700 hover:bg-cream-100 text-sm font-semibold px-4 py-2.5 rounded-full transition-colors disabled:opacity-60"
+        >
+          <RefreshCw size={15} className={loading ? "animate-spin" : ""} />
+          <span className="hidden sm:inline">Refresh</span>
+        </button>
       </div>
 
       {/* Filter Status Tabs & Pencarian */}

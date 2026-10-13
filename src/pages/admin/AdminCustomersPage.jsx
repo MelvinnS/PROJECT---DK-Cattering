@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   Users,
@@ -8,31 +8,102 @@ import {
   MoreVertical,
   ChevronLeft,
   ChevronRight,
+  Loader2,
 } from "lucide-react";
-import { initialCustomers } from "../../data/customerDummyData";
 import CustomerDetailModal from "../../components/admin/CustomerDetailModal";
+import { getAdminCustomers, getAdminCustomerById } from "../../services/adminService";
 
 const AdminCustomersPage = () => {
-  const [customers] = useState(initialCustomers);
+  const [customers, setCustomers] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [totalCount, setTotalCount] = useState(0);
 
-  // Filter customers by search
-  const filteredCustomers = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    if (!q) return customers;
-    return customers.filter(
-      (c) =>
-        c.customerId.toLowerCase().includes(q) ||
-        c.fullName.toLowerCase().includes(q) ||
-        c.phone.toLowerCase().includes(q) ||
-        c.username.toLowerCase().includes(q)
-    );
-  }, [customers, search]);
+  const fetchCustomers = async () => {
+    setLoading(true);
+    try {
+      const response = await getAdminCustomers({
+        search: search.trim() || undefined,
+        page: currentPage,
+        limit: 10,
+      });
+      // response: { data: [...], meta: { total, page, limit, totalPages } }
+      const items = (response.data || []).map((u, index) => ({
+        id: u.id,
+        customerId: `Cust ${index + 1 + (currentPage - 1) * 10}`,
+        fullName: u.fullName || "Tanpa Nama",
+        phone: u.phone || "-",
+        username: u.email?.split("@")[0] || "-",
+        email: u.email,
+        registeredDate: u.createdAt
+          ? new Date(u.createdAt).toLocaleDateString("id-ID", {
+              day: "numeric",
+              month: "short",
+              year: "numeric",
+            })
+          : "-",
+        primaryAddress: "-",
+        stats: {
+          totalOrders: u.totalOrdersCount || 0,
+          totalSpent: u.totalSpending || 0,
+          completedOrders: u.totalOrdersCount || 0,
+          ongoingOrders: u.activeSubscriptionsCount || 0,
+        },
+        recentOrders: [],
+      }));
+      setCustomers(items);
+      setTotalCount(response.meta?.total || items.length);
+    } catch (err) {
+      console.error("Gagal memuat data pelanggan:", err);
+      setCustomers([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const handleOpenDetail = (customer) => {
+  useEffect(() => {
+    fetchCustomers();
+  }, [currentPage]);
+
+  // Handle Search with debounce or enter
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    setCurrentPage(1);
+    fetchCustomers();
+  };
+
+  const handleOpenDetail = async (customer) => {
     setSelectedCustomer(customer);
+    try {
+      const fullDetail = await getAdminCustomerById(customer.id);
+      if (fullDetail) {
+        const primaryAddr = fullDetail.addresses?.find((a) => a.isPrimary) || fullDetail.addresses?.[0];
+        const addrString = primaryAddr
+          ? `${primaryAddr.streetName || ""}, ${primaryAddr.detailNotes || ""}`.trim()
+          : "Belum mengatur alamat";
+
+        const recentOrdersFormatted = (fullDetail.orders || []).slice(0, 3).map((o) => ({
+          id: o.orderNumber,
+          date: o.createdAt ? new Date(o.createdAt).toLocaleDateString("id-ID") : "-",
+          total: Number(o.totalPrice) || 0,
+          status: o.status,
+        }));
+
+        setSelectedCustomer((prev) => ({
+          ...prev,
+          primaryAddress: addrString,
+          recentOrders: recentOrdersFormatted,
+          stats: {
+            ...prev.stats,
+            totalOrders: fullDetail.orders?.length || 0,
+          },
+        }));
+      }
+    } catch (err) {
+      console.error("Gagal mengambil detail customer:", err);
+    }
   };
 
   const handleCloseDetail = () => {
@@ -40,12 +111,11 @@ const AdminCustomersPage = () => {
   };
 
   const handleExport = () => {
-    // Export simple CSV of customers
-    const headers = "ID Customer,Nama Lengkap,No HP,Username,Terdaftar\n";
-    const rows = filteredCustomers
+    const headers = "ID Customer,Nama Lengkap,No HP,Email,Terdaftar\n";
+    const rows = customers
       .map(
         (c) =>
-          `"${c.customerId}","${c.fullName}","${c.phone}","${c.username}","${c.registeredDate}"`
+          `"${c.customerId}","${c.fullName}","${c.phone}","${c.email}","${c.registeredDate}"`
       )
       .join("\n");
     const blob = new Blob([headers + rows], { type: "text/csv;charset=utf-8;" });
@@ -59,90 +129,83 @@ const AdminCustomersPage = () => {
   };
 
   return (
-    <div className="flex flex-col gap-6 md:gap-7 max-w-5xl mx-auto">
-      {/* Header & Breadcrumbs */}
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-coffee-800">
-          Kelola Customer
-        </h1>
-        <div className="flex items-center gap-1.5 text-xs sm:text-sm text-coffee-400 mt-1">
-          <Link to="/admin" className="hover:text-coffee-700 transition-colors">
-            Dashboard
-          </Link>
-          <span>&gt;</span>
-          <span className="text-coffee-600 font-semibold">Kelola Customer</span>
-        </div>
-      </div>
+    <div className="space-y-6">
+      {/* Detail Customer Modal */}
+      <CustomerDetailModal
+        isOpen={!!selectedCustomer}
+        onClose={handleCloseDetail}
+        customer={selectedCustomer}
+      />
 
-      {/* Stat Card: Total Customer 128 */}
-      <div className="bg-white rounded-2xl md:rounded-3xl border border-coffee-100/90 shadow-[0_10px_30px_-15px_rgba(42,33,24,0.12)] p-5 sm:p-6 flex items-center gap-4 max-w-sm">
-        <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-cream-100/80 text-coffee-700 flex items-center justify-center shrink-0">
-          <Users size={24} />
-        </div>
+      {/* Header Halaman */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <p className="text-xs font-semibold text-coffee-500">Total Customer</p>
-          <p className="text-2xl sm:text-3xl font-extrabold text-coffee-800 leading-tight mt-0.5">
-            128
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-coffee-800 tracking-tight">
+              Kelola Pelanggan
+            </h1>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#E2D8CC] text-[#5A4B3C]">
+              <Users size={13} />
+              {totalCount} Customer
+            </span>
+          </div>
+          <p className="text-coffee-500 text-sm mt-1">
+            Pantau dan kelola seluruh data customer yang terdaftar di sistem.
           </p>
-          <p className="text-xs text-coffee-400 mt-0.5">Semua Customer</p>
+        </div>
+
+        {/* Action Header */}
+        <div className="flex items-center gap-2.5">
+          <button
+            type="button"
+            onClick={handleExport}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full border border-coffee-200 hover:border-coffee-400 bg-white hover:bg-cream-50 text-coffee-700 text-xs sm:text-sm font-semibold transition-all shadow-sm active:scale-95"
+          >
+            <Download size={15} />
+            Export CSV
+          </button>
         </div>
       </div>
 
-      {/* Toolbar: Search, Filter, Export */}
-      <div className="flex items-center justify-between gap-3">
-        {/* Search Input */}
-        <div className="relative flex-1 max-w-md">
+      {/* Filter & Search Bar */}
+      <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
+        <form onSubmit={handleSearchSubmit} className="relative flex-1 max-w-md">
           <Search
-            size={18}
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-coffee-400 pointer-events-none"
+            size={16}
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-coffee-400"
           />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Cari nama / ID customer..."
-            className="w-full rounded-full pl-11 pr-4 py-2.5 bg-white border border-coffee-200/80 shadow-sm focus:border-coffee-500 focus:ring-2 focus:ring-coffee-500/20 outline-none text-xs sm:text-sm text-coffee-800 transition-all placeholder:text-coffee-400"
+            placeholder="Cari nama, email, no HP..."
+            className="w-full pl-11 pr-4 py-2.5 text-xs sm:text-sm rounded-full bg-white border border-coffee-200/90 text-coffee-800 placeholder:text-coffee-400 focus:outline-none focus:ring-2 focus:ring-accent-500/30 focus:border-accent-500 transition-all shadow-sm"
           />
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 rounded-full border border-coffee-200/90 hover:border-coffee-400 bg-white hover:bg-cream-50 text-coffee-700 text-xs sm:text-sm font-semibold transition-all shadow-sm active:scale-95 shrink-0"
-          >
-            <SlidersHorizontal size={15} />
-            <span className="hidden sm:inline">Filter</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={handleExport}
-            className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 rounded-full border border-coffee-200/90 hover:border-coffee-400 bg-white hover:bg-cream-50 text-coffee-700 text-xs sm:text-sm font-semibold transition-all shadow-sm active:scale-95 shrink-0"
-          >
-            <Download size={15} />
-            <span className="hidden sm:inline">Export</span>
-          </button>
-        </div>
+        </form>
       </div>
 
-      {/* Tabel Customer (Desktop & Tablet) & Card List (Mobile) */}
-      <div className="bg-white rounded-2xl md:rounded-3xl border border-coffee-100/90 shadow-[0_10px_30px_-15px_rgba(42,33,24,0.12)] overflow-hidden">
-        {/* Table Header Desktop */}
-        <div className="hidden md:grid md:grid-cols-12 gap-4 px-6 py-4 bg-cream-100/40 border-b border-coffee-100 text-xs font-bold text-coffee-700 uppercase tracking-wider">
+      {/* Table Container */}
+      <div className="bg-white rounded-2xl md:rounded-3xl border border-coffee-100 shadow-[0_4px_24px_-4px_rgba(42,33,24,0.06)] overflow-hidden">
+        {/* Table Header */}
+        <div className="hidden md:grid md:grid-cols-12 px-6 py-4 bg-cream-50/70 border-b border-coffee-100 text-xs font-bold text-coffee-500 uppercase tracking-wider">
           <div className="col-span-4">ID Customer</div>
-          <div className="col-span-5">Nama Lengkap</div>
-          <div className="col-span-3 text-right pr-3">Aksi</div>
+          <div className="col-span-5">Nama Lengkap & Kontak</div>
+          <div className="col-span-3 text-right">Aksi</div>
         </div>
 
-        {/* Content Rows */}
-        <div className="divide-y divide-coffee-100/70">
-          {filteredCustomers.length === 0 ? (
-            <div className="py-12 text-center text-coffee-400 text-sm">
+        {/* Table Body */}
+        <div className="divide-y divide-coffee-100/60">
+          {loading ? (
+            <div className="py-16 text-center text-coffee-400 text-sm flex flex-col items-center justify-center gap-2">
+              <Loader2 className="animate-spin text-accent-600" size={24} />
+              <span>Memuat data pelanggan...</span>
+            </div>
+          ) : customers.length === 0 ? (
+            <div className="py-16 text-center text-coffee-400 text-sm">
               Customer tidak ditemukan.
             </div>
           ) : (
-            filteredCustomers.map((customer) => (
+            customers.map((customer) => (
               <div
                 key={customer.id}
                 className="px-4 py-3.5 sm:px-6 sm:py-4 flex flex-col md:grid md:grid-cols-12 gap-3 md:gap-4 md:items-center hover:bg-cream-50/50 transition-colors"
@@ -152,17 +215,27 @@ const AdminCustomersPage = () => {
                   <div className="w-8 h-8 rounded-full bg-[#E2D8CC] text-[#5A4B3C] font-bold text-xs flex items-center justify-center shrink-0">
                     <span className="w-2.5 h-2.5 rounded-full bg-coffee-400/40 inline-block" />
                   </div>
-                  <span className="font-bold text-sm text-coffee-800">
-                    {customer.customerId}
-                  </span>
+                  <div>
+                    <span className="font-bold text-sm text-coffee-800 block">
+                      {customer.customerId}
+                    </span>
+                    <span className="text-[11px] text-coffee-400 block truncate">
+                      {customer.email}
+                    </span>
+                  </div>
                 </div>
 
                 {/* Desktop View: Nama Lengkap */}
-                <div className="hidden md:block col-span-5 font-semibold text-sm text-coffee-800">
-                  {customer.fullName}
+                <div className="hidden md:block col-span-5">
+                  <p className="font-semibold text-sm text-coffee-800">
+                    {customer.fullName}
+                  </p>
+                  <p className="text-xs text-coffee-500">
+                    {customer.phone}
+                  </p>
                 </div>
 
-                {/* Mobile View: Avatar + ID Customer (Top) & Nama (Bottom) */}
+                {/* Mobile View */}
                 <div className="flex md:hidden items-center justify-between gap-3">
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="w-9 h-9 rounded-full bg-[#E2D8CC] text-[#5A4B3C] font-bold text-xs flex items-center justify-center shrink-0">
@@ -175,6 +248,9 @@ const AdminCustomersPage = () => {
                       <p className="font-semibold text-sm text-coffee-700 truncate">
                         {customer.fullName}
                       </p>
+                      <p className="text-xs text-coffee-400 truncate">
+                        {customer.email}
+                      </p>
                     </div>
                   </div>
 
@@ -186,13 +262,6 @@ const AdminCustomersPage = () => {
                       className="px-3.5 py-1.5 rounded-full border border-coffee-200 hover:border-coffee-400 bg-white hover:bg-cream-50 text-coffee-800 text-xs font-semibold transition-all shadow-sm active:scale-95"
                     >
                       Lihat Detail
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleOpenDetail(customer)}
-                      className="w-8 h-8 flex items-center justify-center rounded-full text-coffee-400 hover:text-coffee-700 hover:bg-cream-100 transition-colors"
-                    >
-                      <MoreVertical size={16} />
                     </button>
                   </div>
                 </div>
@@ -223,11 +292,11 @@ const AdminCustomersPage = () => {
       {/* Pagination Bar */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs sm:text-sm text-coffee-500 py-1">
         <p className="font-medium">
-          Menampilkan 1 – {filteredCustomers.length} dari 128 customer
+          Menampilkan {customers.length} dari {totalCount} customer
         </p>
 
-        {/* Desktop Pagination */}
-        <div className="hidden sm:flex items-center gap-1">
+        {/* Pagination Buttons */}
+        <div className="flex items-center gap-1">
           <button
             type="button"
             disabled={currentPage === 1}
@@ -236,50 +305,19 @@ const AdminCustomersPage = () => {
           >
             <ChevronLeft size={16} />
           </button>
-
-          {[1, 2, 3, 4, 5].map((page) => (
-            <button
-              key={page}
-              type="button"
-              onClick={() => setCurrentPage(page)}
-              className={`w-8 h-8 flex items-center justify-center rounded-lg font-semibold text-xs transition-colors ${
-                currentPage === page
-                  ? "bg-cream-200 text-coffee-900 border border-coffee-300"
-                  : "border border-coffee-200 text-coffee-600 hover:bg-cream-100"
-              }`}
-            >
-              {page}
-            </button>
-          ))}
-
+          <span className="px-3 py-1 text-xs font-bold text-coffee-700">
+            Halaman {currentPage}
+          </span>
           <button
             type="button"
-            disabled={currentPage === 5}
-            onClick={() => setCurrentPage((p) => Math.min(5, p + 1))}
+            disabled={customers.length < 10}
+            onClick={() => setCurrentPage((p) => p + 1)}
             className="w-8 h-8 flex items-center justify-center rounded-lg border border-coffee-200 text-coffee-600 hover:bg-cream-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >
             <ChevronRight size={16} />
           </button>
         </div>
-
-        {/* Mobile Pagination Button */}
-        <div className="sm:hidden w-full flex justify-end">
-          <button
-            type="button"
-            className="inline-flex items-center gap-1 px-4 py-2 rounded-xl bg-cream-100/90 text-coffee-800 text-xs font-bold border border-coffee-200"
-          >
-            <span>Selanjutnya</span>
-            <ChevronRight size={14} />
-          </button>
-        </div>
       </div>
-
-      {/* Popup Modal Detail Customer (Tidak Berpindah Halaman) */}
-      <CustomerDetailModal
-        isOpen={Boolean(selectedCustomer)}
-        customer={selectedCustomer}
-        onClose={handleCloseDetail}
-      />
     </div>
   );
 };

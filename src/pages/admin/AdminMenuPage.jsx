@@ -13,7 +13,7 @@ import MenuFormModal from "../../components/admin/MenuFormModal";
  * untuk "publish" ke sisi pelanggan.
  */
 const AdminMenuPage = () => {
-  const { catalog, addMenu, updateMenu, deleteMenu, toggleAvailability } = useMenu();
+  const { catalog, loading: catalogLoading, addMenu, updateMenu, deleteMenu, toggleAvailability } = useMenu();
   const [search, setSearch] = useState("");
   const [modalState, setModalState] = useState({ open: false, mode: "add", menu: null });
 
@@ -32,18 +32,44 @@ const AdminMenuPage = () => {
   const openEdit = (menu) => setModalState({ open: true, mode: "edit", menu });
   const closeModal = () => setModalState((prev) => ({ ...prev, open: false }));
 
-  const handleSubmit = (formData) => {
-    if (modalState.mode === "edit" && modalState.menu) {
-      updateMenu(modalState.menu.id, formData);
-    } else {
-      addMenu(formData);
+  const [saving, setSaving] = useState(false);
+
+  const handleSubmit = async (formData) => {
+    setSaving(true);
+    try {
+      if (modalState.mode === "edit" && modalState.menu) {
+        await updateMenu(modalState.menu.id, formData);
+      } else {
+        await addMenu(formData);
+      }
+      closeModal();
+    } catch (err) {
+      console.error("Gagal menyimpan menu:", err);
+      alert("Gagal menyimpan menu. Coba lagi.");
+    } finally {
+      setSaving(false);
     }
-    closeModal();
   };
 
-  const handleReuse = (id) => {
-    toggleAvailability(id);
-    closeModal();
+  const handleReuse = async (id) => {
+    setSaving(true);
+    try {
+      await toggleAvailability(id);
+      closeModal();
+    } catch (err) {
+      console.error("Gagal mengaktifkan menu:", err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      await deleteMenu(id);
+    } catch (err) {
+      console.error("Gagal menghapus menu:", err);
+      alert("Gagal menghapus menu. Coba lagi.");
+    }
   };
 
   return (
@@ -80,7 +106,20 @@ const AdminMenuPage = () => {
       </div>
 
       {/* Grid menu */}
-      {filtered.length === 0 ? (
+      {catalogLoading ? (
+        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5">
+          {[1, 2, 3, 4].map((n) => (
+            <div key={n} className="animate-pulse bg-white rounded-2xl overflow-hidden border border-coffee-100/60">
+              <div className="h-36 bg-cream-100" />
+              <div className="p-3 space-y-2">
+                <div className="h-3.5 bg-cream-100 rounded w-3/4" />
+                <div className="h-3 bg-cream-100 rounded w-full" />
+                <div className="h-3 bg-cream-100 rounded w-1/2" />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : filtered.length === 0 ? (
         <div className="bg-white border border-coffee-100/60 rounded-2xl p-12 text-center text-coffee-500/70 flex flex-col items-center gap-3">
           <UtensilsCrossed size={28} className="text-coffee-300" />
           {catalog.length === 0
@@ -94,7 +133,7 @@ const AdminMenuPage = () => {
               key={menu.id}
               menu={menu}
               onEdit={() => openEdit(menu)}
-              onDelete={() => deleteMenu(menu.id)}
+              onDelete={() => handleDelete(menu.id)}
               onToggleAvailability={() => toggleAvailability(menu.id)}
             />
           ))}

@@ -46,11 +46,11 @@ const QuoteSection = () => {
 
           {/* Teks Quotes: Tiru tipografi & highlight Orastrix */}
           <blockquote className="font-display text-[#181818] text-[2rem] sm:text-[2.6rem] lg:text-[3.2rem] leading-[1.22] tracking-tight font-bold text-left">
-            “Psikolog itu mahal, jadi saya duduk di kursi indomart sambil makan{" "}
+            “beli makan di restoran mahal, jadi saya pilih Cattering Harian di{" "}
             <span className="relative inline-block text-[#D97706] italic font-serif underline decoration-[#D97706] underline-offset-8 decoration-2">
-              Orastrix
+              DK Cattering 
             </span>
-            , beban hidup hilang.”
+            , Dompet aman, perut kenyang.”
           </blockquote>
 
           {/* Penulis Quote: — ISAAC NEWTON */}

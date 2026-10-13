@@ -13,13 +13,16 @@ const CheckoutPage = () => {
   // Belum terhubung payment gateway beneran — ini simulasi supaya alur
   // Checkout -> Pesanan bisa dites di frontend. Nanti tinggal ganti
   // handlePay() dengan panggilan API payment yang sesungguhnya.
-  const handlePay = () => {
+  const handlePay = async () => {
     setIsProcessing(true);
-    setTimeout(() => {
-      placeOrder();
-      setIsProcessing(false);
+    try {
+      await placeOrder();
       navigate("/pesanan");
-    }, 900);
+    } catch (err) {
+      alert("Gagal memproses pesanan: " + (err.message || "Silakan coba lagi"));
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   if (cartItems.length === 0) {

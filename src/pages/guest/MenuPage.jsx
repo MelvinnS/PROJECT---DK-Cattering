@@ -22,7 +22,7 @@ const ALL = "Semua";
  * Semua teks memakai font biasa (Poppins) supaya mudah dibaca.
  */
 const MenuPage = () => {
-  const { availableMenus } = useMenu();
+  const { availableMenus, loading: menuLoading } = useMenu();
   const { isAuthenticated } = useAuth();
   const { cartItems, cartCount, addToCart, incrementQty, decrementQty } =
     useOrder();
@@ -166,7 +166,20 @@ const MenuPage = () => {
       {/* ── Isi: grid menu + panel pesanan ── */}
       <div className="max-w-7xl mx-auto px-6 lg:px-12 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_380px] lg:gap-8 lg:items-start">
         <div>
-          {filtered.length === 0 ? (
+          {menuLoading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-3 gap-5">
+              {[1, 2, 3, 4].map((n) => (
+                <div key={n} className="animate-pulse bg-white rounded-2xl overflow-hidden border border-black/5">
+                  <div className="h-44 bg-[#E9E0D3]" />
+                  <div className="p-4 space-y-2">
+                    <div className="h-4 bg-[#E9E0D3] rounded w-3/4" />
+                    <div className="h-3 bg-[#E9E0D3] rounded w-full" />
+                    <div className="h-3 bg-[#E9E0D3] rounded w-2/3" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : filtered.length === 0 ? (
             <div className="text-center py-20 bg-white rounded-2xl border border-black/5">
               <ShoppingBag size={44} className="mx-auto mb-4 text-[#181818]/25" />
               <p className="font-semibold text-[#181818]">
