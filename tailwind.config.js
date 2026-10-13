@@ -31,9 +31,22 @@ export default {
           600: "#A66432",
           700: "#824C25",
         },
+        // Palet halaman utama (mengikuti video konsep): krim, cokelat, hijau.
+        scoop: {
+          cream: "#FFF0CD",
+          tan: "#BA7E55", // warna latar section menu = warna gelombang section quotes
+          ribbon: "#AA6D45",
+          brown: "#B35F3E",
+          green: "#3F9060",
+          greenDark: "#2F6E48",
+          mint: "#C1F1CB",
+          ink: "#151515",
+          maroon: "#5B1A0C",
+        },
       },
       fontFamily: {
         sans: ["Poppins", "system-ui", "sans-serif"],
+        display: ['"Bagel Fat One"', '"Arial Rounded MT Bold"', "Poppins", "system-ui", "sans-serif"],
       },
       borderRadius: {
         xl2: "1.5rem",
@@ -51,11 +64,21 @@ export default {
           "0%": { opacity: 0 },
           "100%": { opacity: 1 },
         },
+        waveSway: {
+          "0%, 100%": { transform: "translateX(0) scaleY(1)" },
+          "50%": { transform: "translateX(-1.5%) scaleY(1.06)" },
+        },
+        floatSlow: {
+          "0%, 100%": { transform: "translateY(0) rotate(0deg)" },
+          "50%": { transform: "translateY(-14px) rotate(3deg)" },
+        },
       },
       animation: {
         "blob-rotate": "blobRotate 70s linear infinite",
         "fade-slide-up": "fadeSlideUp 0.6s cubic-bezier(0.22,1,0.36,1) both",
         "fade-in": "fadeIn 0.4s ease-out both",
+        "wave-sway": "waveSway 7s ease-in-out infinite",
+        "float-slow": "floatSlow 6s ease-in-out infinite",
       },
     },
   },

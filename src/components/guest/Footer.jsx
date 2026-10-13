@@ -1,109 +1,110 @@
-import { Coffee, Phone, MessageCircle, MapPin, AtSign } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import siteConfig, { getWhatsappLink } from "../../data/siteConfig";
 
-const footerNav = [
+const quickLinks = [
   { label: "Beranda", to: "/" },
   { label: "Menu", to: "/menu" },
-  { label: "Tentang", to: "#" },
-  { label: "FAQ", to: "#" },
-  { label: "Kontak", to: "#" },
+  { label: "Tentang", to: "/#tentang" },
+  { label: "Pesan Online", to: "/menu" },
 ];
 
-const footerServices = ["Catering Harian", "Catering Event", "Pemesanan Khusus"];
+const socials = [
+  { label: "Instagram", href: "#" },
+  { label: "Facebook", href: "#" },
+  { label: "WhatsApp", href: getWhatsappLink() },
+];
 
 const Footer = () => {
   const year = new Date().getFullYear();
+  const { pathname } = useLocation();
+  // Warna latar di atas gelombang disamakan dengan section di atasnya (krem).
+  const topBg = pathname === "/" ? "bg-scoop-cream" : "bg-cream-50";
 
   return (
-    <footer className="relative mt-20 bg-gradient-to-b from-accent-500 via-coffee-600 to-coffee-800 text-cream-50 overflow-hidden">
-      {/* Lengkungan dekoratif di bagian atas footer */}
-      <div className="absolute -top-10 left-0 right-0 h-16 bg-cream-50 rounded-b-[100%]" />
-
-      <div className="relative max-w-7xl mx-auto px-6 lg:px-10 pt-16 pb-10 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10">
-        <div>
-          <div className="flex items-center gap-2 mb-3">
-            <span className="flex items-center justify-center w-9 h-9 rounded-full bg-cream-50 text-coffee-700">
-              <Coffee size={18} />
-            </span>
-            <span className="font-extrabold tracking-wide">
-              {siteConfig.brandFullName}
-            </span>
-          </div>
-          <p className="text-sm text-cream-50/80 max-w-xs">
-            {siteConfig.tagline}
-          </p>
-          <div className="flex gap-3 mt-4">
-            <span className="w-9 h-9 flex items-center justify-center rounded-full bg-coffee-800/40 hover:bg-coffee-800/60 transition-colors cursor-pointer">
-              <AtSign size={16} />
-            </span>
-            <a
-              href={getWhatsappLink()}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-9 h-9 flex items-center justify-center rounded-full bg-coffee-800/40 hover:bg-coffee-800/60 transition-colors"
-              aria-label="WhatsApp"
-            >
-              <MessageCircle size={16} />
-            </a>
-            <span className="w-9 h-9 flex items-center justify-center rounded-full bg-coffee-800/40 hover:bg-coffee-800/60 transition-colors cursor-pointer">
-              <MapPin size={16} />
-            </span>
-          </div>
-        </div>
-
-        <div>
-          <h4 className="font-semibold mb-3">Navigasi</h4>
-          <ul className="space-y-2 text-sm text-cream-50/80">
-            {footerNav.map((item) => (
-              <li key={item.label}>
-                <Link to={item.to} className="hover:text-cream-50 transition-colors">
-                  {item.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div>
-          <h4 className="font-semibold mb-3">Layanan</h4>
-          <ul className="space-y-2 text-sm text-cream-50/80">
-            {footerServices.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
-        </div>
-
-        <div>
-          <h4 className="font-semibold mb-3">Hubungi Kami</h4>
-          <ul className="space-y-3 text-sm text-cream-50/80">
-            <li className="flex items-center gap-2">
-              <Phone size={16} />
-              <a href={`tel:+${siteConfig.whatsappNumber}`} className="hover:text-cream-50">
-                {siteConfig.whatsappDisplay}
-              </a>
-            </li>
-            <li className="flex items-center gap-2">
-              <MessageCircle size={16} />
-              <a
-                href={getWhatsappLink()}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-cream-50"
-              >
-                {siteConfig.whatsappDisplay}
-              </a>
-            </li>
-            <li className="flex items-center gap-2">
-              <MapPin size={16} />
-              <span>{siteConfig.location}</span>
-            </li>
-          </ul>
-        </div>
+    <footer id="kontak" data-nav="light" className="relative">
+      {/* Gelombang hijau menyambung dari section krem ke footer */}
+      <div className={topBg}>
+        <svg
+          aria-hidden="true"
+          className="block w-full h-16 lg:h-28"
+          viewBox="0 0 1440 120"
+          preserveAspectRatio="none"
+        >
+          <path
+            fill="#3B8A5A"
+            d="M0,70 C120,30 230,20 350,55 C470,90 540,105 680,70 C800,40 880,10 1010,22 C1130,34 1210,75 1320,62 C1380,55 1415,42 1440,35 L1440,120 L0,120 Z"
+          />
+        </svg>
       </div>
 
-      <div className="relative border-t border-cream-50/15 py-4 text-center text-xs text-cream-50/60">
-        © {year} {siteConfig.brandFullName}. All rights reserved.
+      {/* Background Footer dengan warna hijau yang sama persis (#3B8A5A) */}
+      <div className="bg-[#3B8A5A] text-white">
+        <div className="max-w-6xl mx-auto px-6 lg:px-10 pt-4 pb-12">
+          <Link to="/" className="font-display display-bold text-4xl lg:text-5xl">
+            {siteConfig.brandFullName}
+          </Link>
+
+          <div className="mt-10 grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-10 text-[13px]">
+            <div>
+              <h4 className="font-bold text-sm mb-3">Alamat</h4>
+              <ul className="space-y-1.5 text-white/80 leading-relaxed">
+                <li>{siteConfig.address}</li>
+                <li>
+                  <a href={`tel:+${siteConfig.whatsappNumber}`} className="hover:text-white">
+                    {siteConfig.whatsappDisplay}
+                  </a>
+                </li>
+                <li>{siteConfig.email}</li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="font-bold text-sm mb-3">Jam Operasional</h4>
+              <ul className="space-y-1.5 text-white/80">
+                {siteConfig.openingHours.map((h) => (
+                  <li key={h.days}>
+                    {h.days}: {h.time}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="font-bold text-sm mb-3">Tautan Cepat</h4>
+              <ul className="space-y-1.5 text-white/80">
+                {quickLinks.map((l) => (
+                  <li key={l.label}>
+                    <Link to={l.to} className="hover:text-white transition-colors">
+                      {l.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="font-bold text-sm mb-3">Media Sosial</h4>
+              <ul className="space-y-1.5 text-white/80">
+                {socials.map((s) => (
+                  <li key={s.label}>
+                    <a
+                      href={s.href}
+                      target={s.href.startsWith("http") ? "_blank" : undefined}
+                      rel="noopener noreferrer"
+                      className="hover:text-white transition-colors"
+                    >
+                      {s.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          <p className="mt-12 text-center text-[11.5px] text-white/60">
+            Copyright © {year} {siteConfig.brandFullName}. All Rights Reserved.
+          </p>
+        </div>
       </div>
     </footer>
   );

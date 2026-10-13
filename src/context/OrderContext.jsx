@@ -79,6 +79,7 @@ export const OrderProvider = ({ children }) => {
           menuId: menu.id,
           name: menu.name,
           price: menu.price,
+          image: menu.image,
           qty: 1,
         },
       ];

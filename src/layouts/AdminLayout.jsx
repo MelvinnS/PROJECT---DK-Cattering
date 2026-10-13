@@ -32,7 +32,7 @@ const navItems = [
 
 // Isi sidebar dipisah jadi komponen sendiri supaya bisa dipakai ulang di
 // sidebar statis (desktop) maupun drawer (mobile) tanpa duplikasi markup.
-const SidebarContent = ({ user, onNavigate, onLogout }) => (
+const SidebarContent = ({ user, onNavigate, onLogout, onSwitchToCustomer }) => (
   <>
     <div className="flex items-center gap-2 px-6 py-5 border-b border-cream-50/10 shrink-0">
       <span className="flex items-center justify-center w-9 h-9 rounded-full bg-cream-50 text-coffee-700 shrink-0">
@@ -95,6 +95,14 @@ const SidebarContent = ({ user, onNavigate, onLogout }) => (
         <LogOut size={18} />
         Keluar
       </button>
+      {onSwitchToCustomer && (
+        <button
+          onClick={onSwitchToCustomer}
+          className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-cream-50/80 hover:bg-coffee-700 transition-colors"
+        >
+          ⇄ Beralih ke Customer
+        </button>
+      )}
       <Link
         to="/"
         onClick={onNavigate}
@@ -107,7 +115,7 @@ const SidebarContent = ({ user, onNavigate, onLogout }) => (
 );
 
 const AdminLayout = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, isMock, switchRole } = useAuth();
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -115,6 +123,13 @@ const AdminLayout = () => {
     logout();
     navigate("/");
   };
+
+  // Mode mock (backend diputus): pindah role ke Customer tanpa login ulang.
+  const handleSwitchToCustomer = () => {
+    switchRole("CUSTOMER");
+    navigate("/");
+  };
+  const switchProp = isMock ? handleSwitchToCustomer : undefined;
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-cream-50">
@@ -137,7 +152,7 @@ const AdminLayout = () => {
 
       {/* Sidebar — statis, hanya tampil di desktop (md ke atas) */}
       <aside className="hidden md:flex md:w-64 shrink-0 bg-coffee-800 text-cream-50 flex-col">
-        <SidebarContent user={user} onLogout={handleLogout} />
+        <SidebarContent user={user} onLogout={handleLogout} onSwitchToCustomer={switchProp} />
       </aside>
 
       {/* Sidebar — drawer geser dari kiri, khusus mobile/tablet */}
@@ -174,6 +189,7 @@ const AdminLayout = () => {
                 user={user}
                 onNavigate={() => setIsSidebarOpen(false)}
                 onLogout={handleLogout}
+                onSwitchToCustomer={switchProp}
               />
             </motion.aside>
           </>
