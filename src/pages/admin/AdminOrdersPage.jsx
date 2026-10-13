@@ -8,7 +8,6 @@ import {
   ClipboardList,
   Clock,
   Check,
-  Loader2,
 } from "lucide-react";
 import { useAdminOrders } from "../../context/AdminOrderContext";
 import { orderStatusColor as dummyOrderStatusColor, orderStatusLabel as dummyOrderStatusLabel } from "../../context/OrderContext";

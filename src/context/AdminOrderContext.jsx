@@ -3,6 +3,7 @@ import {
   getAdminOrders,
   getAdminOrderById,
   updateAdminOrderStatus,
+  batchUpdateAdminOrderStatus,
 } from "../services/adminOrderService";
 
 const AdminOrderContext = createContext(undefined);
@@ -67,21 +68,35 @@ export const AdminOrderProvider = ({ children }) => {
     [updateOrderStatus]
   );
 
-  // Batch accept — panggil satu-satu (BE belum punya batch endpoint)
+  // Batch accept — panggil endpoint batch BE
   const batchAcceptOrders = useCallback(
     async (ids) => {
-      await Promise.all(ids.map((id) => acceptOrder(id)));
+      await batchUpdateAdminOrderStatus({ orderIds: ids, status: "IN_KITCHEN" });
+      setOrders((prev) =>
+        prev.map((order) => (ids.includes(order.id) ? { ...order, status: "IN_KITCHEN" } : order))
+      );
     },
-    [acceptOrder]
+    []
   );
 
-  // Batch reject
+  // Batch reject — panggil endpoint batch BE
   const batchRejectOrders = useCallback(
     async (ids, reason) => {
       if (!reason?.trim()) throw new Error("Alasan penolakan wajib diisi.");
-      await Promise.all(ids.map((id) => rejectOrder(id, reason)));
+      await batchUpdateAdminOrderStatus({
+        orderIds: ids,
+        status: "CANCELLED",
+        rejectionReason: reason.trim(),
+      });
+      setOrders((prev) =>
+        prev.map((order) =>
+          ids.includes(order.id)
+            ? { ...order, status: "CANCELLED", rejectionReason: reason.trim() }
+            : order
+        )
+      );
     },
-    [rejectOrder]
+    []
   );
 
   // Count per status (dari orders yang sudah di-fetch)

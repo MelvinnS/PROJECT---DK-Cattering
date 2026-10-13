@@ -23,6 +23,7 @@ export const addAddress = async (payload) => {
   const response = await apiClient.post("/user/addresses", payload);
   return response.data;
 };
+export const createAddress = addAddress;
 
 /** PATCH /user/addresses/:id — update alamat */
 export const updateAddress = async (id, payload) => {

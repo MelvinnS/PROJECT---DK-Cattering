@@ -5,6 +5,6 @@
 //                    Customer <-> Admin lewat menu akun di Navbar.
 // false           -> kembali memakai backend NestJS asli (login sungguhan).
 //
-// Cara mengganti: set VITE_USE_MOCK_BACKEND=false di file .env
+// Cara mengganti: set VITE_USE_MOCK_BACKEND=true di file .env jika ingin mode mock offline
 export const USE_MOCK_BACKEND =
-  import.meta.env.VITE_USE_MOCK_BACKEND !== "false";
+  import.meta.env.VITE_USE_MOCK_BACKEND === "true";

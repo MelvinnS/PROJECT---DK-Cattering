@@ -13,10 +13,9 @@ import {
   CheckCircle2,
   Clock,
   Utensils,
-  Eye,
+  Trash2,
 } from "lucide-react";
-
-  // Data reviews akan diambil dari BE
+import { getAdminReviews, deleteAdminReview } from "../../services/reviewService";
 
 const ROWS_PER_PAGE = 5;
 
@@ -45,7 +44,7 @@ const StarRating = ({ rating, max = 5, size = 15 }) => {
 
 // ─── POPUP DETAIL ULASAN (MODAL) ─────────────────────────────────────────────
 
-const ReviewDetailModal = ({ review, onClose, onToggleRead }) => {
+const ReviewDetailModal = ({ review, onClose, onToggleRead, onDelete }) => {
   if (!review) return null;
 
   return (
@@ -177,8 +176,15 @@ const ReviewDetailModal = ({ review, onClose, onToggleRead }) => {
           </div>
         </div>
 
-        {/* Footer Modal: Tombol Tutup */}
-        <div className="shrink-0 px-6 py-3.5 border-t border-coffee-100/70 flex justify-end bg-white">
+        {/* Footer Modal: Tombol Hapus & Tutup */}
+        <div className="shrink-0 px-6 py-3.5 border-t border-coffee-100/70 flex justify-between items-center bg-white">
+          <button
+            type="button"
+            onClick={() => onDelete(review.id)}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 text-xs sm:text-sm font-semibold transition-colors cursor-pointer"
+          >
+            <Trash2 size={14} /> Hapus Ulasan
+          </button>
           <button
             type="button"
             onClick={onClose}
@@ -208,8 +214,7 @@ const AdminReviewsPage = () => {
   useEffect(() => {
     let isMounted = true;
     setIsLoading(true);
-    import("../../services/reviewService")
-      .then(({ getAdminReviews }) => getAdminReviews({ limit: 100 }))
+    getAdminReviews({ limit: 100 })
       .then((result) => {
         if (!isMounted) return;
         const items = Array.isArray(result) ? result : result?.data ?? [];
@@ -242,8 +247,19 @@ const AdminReviewsPage = () => {
   const averageRating = avgNum;
 
   // Toggle status read (Hanya dummy di state lokal)
-  const handleToggleRead = (id) => {
+  const handleToggleRead = () => {
       // Tidak diimplementasikan ke BE
+  };
+
+  const handleDeleteReview = async (id) => {
+    if (!window.confirm("Apakah kamu yakin ingin menghapus ulasan ini?")) return;
+    try {
+      await deleteAdminReview(id);
+      setReviews((prev) => prev.filter((r) => r.id !== id));
+      setSelectedReview(null);
+    } catch (err) {
+      alert(err.message || "Gagal menghapus ulasan");
+    }
   };
 
   // Filter list
@@ -262,7 +278,7 @@ const AdminReviewsPage = () => {
 
       return matchSearch && matchRating;
     });
-  }, [reviews, search, statusFilter, ratingFilter]);
+  }, [reviews, search, ratingFilter]);
 
   // Pagination (5 items per page)
   const totalPages = Math.max(1, Math.ceil(filteredReviews.length / ROWS_PER_PAGE));
@@ -468,7 +484,11 @@ const AdminReviewsPage = () => {
 
         {/* ── List Saran & Masukan (Desktop & Mobile) */}
         <div className="bg-white rounded-2xl md:rounded-3xl border border-coffee-100/70 shadow-[0_12px_36px_-20px_rgba(42,33,24,0.15)] overflow-hidden">
-          {paginatedList.length === 0 ? (
+          {isLoading ? (
+            <div className="py-16 text-center text-coffee-500 text-sm">
+              Memuat masukan dan saran pelanggan...
+            </div>
+          ) : paginatedList.length === 0 ? (
             <div className="py-16 text-center text-coffee-400 text-sm">
               Tidak ada masukan yang sesuai dengan filter pencarian.
             </div>
@@ -638,6 +658,7 @@ const AdminReviewsPage = () => {
         review={selectedReview}
         onClose={() => setSelectedReview(null)}
         onToggleRead={handleToggleRead}
+        onDelete={handleDeleteReview}
       />
     </>
   );

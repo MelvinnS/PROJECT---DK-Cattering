@@ -14,3 +14,9 @@ export const getPublicReviews = async (params = {}) => {
   const response = await apiClient.get("/public/reviews", { params });
   return response.data;
 };
+
+/** DELETE /admin/reviews/:id — hapus ulasan */
+export const deleteAdminReview = async (id) => {
+  const response = await apiClient.delete(`/admin/reviews/${id}`);
+  return response.data;
+};

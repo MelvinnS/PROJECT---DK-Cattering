@@ -1,7 +1,26 @@
 import { useState, useEffect } from "react";
-import { Pencil, Mail, Phone, Check, Loader2, AlertCircle } from "lucide-react";
+import {
+  Pencil,
+  Mail,
+  Phone,
+  Check,
+  Loader2,
+  AlertCircle,
+  MapPin,
+  Plus,
+  Trash2,
+  Star,
+  X,
+} from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
-import { getProfile, updateProfile } from "../../services/userService";
+import {
+  getProfile,
+  updateProfile,
+  getAddresses,
+  createAddress,
+  deleteAddress,
+  setPrimaryAddress,
+} from "../../services/userService";
 import Button from "../../components/common/Button";
 
 const ProfilePage = () => {
@@ -16,6 +35,90 @@ const ProfilePage = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [showSaved, setShowSaved] = useState(false);
   const [saveError, setSaveError] = useState(null);
+
+  // State untuk alamat pengiriman
+  const [addresses, setAddresses] = useState([]);
+  const [isLoadingAddresses, setIsLoadingAddresses] = useState(true);
+  const [addressModalOpen, setAddressModalOpen] = useState(false);
+  const [addressForm, setAddressForm] = useState({
+    label: "Rumah",
+    fullAddress: "",
+    note: "",
+    latitude: -6.2,
+    longitude: 106.816666,
+    isPrimary: false,
+  });
+  const [isSavingAddress, setIsSavingAddress] = useState(false);
+  const [addressError, setAddressError] = useState(null);
+
+  const loadAddresses = async () => {
+    setIsLoadingAddresses(true);
+    try {
+      const data = await getAddresses();
+      setAddresses(Array.isArray(data) ? data : data?.data ?? []);
+    } catch (err) {
+      console.error("Gagal memuat alamat:", err);
+    } finally {
+      setIsLoadingAddresses(false);
+    }
+  };
+
+  useEffect(() => {
+    loadAddresses();
+  }, []);
+
+  const handleAddAddress = async (e) => {
+    e.preventDefault();
+    if (!addressForm.fullAddress.trim()) {
+      setAddressError("Alamat lengkap wajib diisi");
+      return;
+    }
+    setIsSavingAddress(true);
+    setAddressError(null);
+    try {
+      await createAddress({
+        label: addressForm.label.trim() || "Rumah",
+        fullAddress: addressForm.fullAddress.trim(),
+        note: addressForm.note.trim() || undefined,
+        latitude: Number(addressForm.latitude) || -6.2,
+        longitude: Number(addressForm.longitude) || 106.816666,
+        isPrimary: addressForm.isPrimary,
+      });
+      setAddressModalOpen(false);
+      setAddressForm({
+        label: "Rumah",
+        fullAddress: "",
+        note: "",
+        latitude: -6.2,
+        longitude: 106.816666,
+        isPrimary: false,
+      });
+      await loadAddresses();
+    } catch (err) {
+      setAddressError(err.message || "Gagal menambahkan alamat");
+    } finally {
+      setIsSavingAddress(false);
+    }
+  };
+
+  const handleSetPrimary = async (id) => {
+    try {
+      await setPrimaryAddress(id);
+      await loadAddresses();
+    } catch (err) {
+      alert(err.message || "Gagal mengubah alamat utama");
+    }
+  };
+
+  const handleDeleteAddress = async (id) => {
+    if (!window.confirm("Hapus alamat ini?")) return;
+    try {
+      await deleteAddress(id);
+      await loadAddresses();
+    } catch (err) {
+      alert(err.message || "Gagal menghapus alamat");
+    }
+  };
 
   // Muat profil dari BE saat halaman dibuka
   useEffect(() => {
@@ -212,8 +315,213 @@ const ProfilePage = () => {
           </div>
         </form>
       )}
+
+      {/* ── BAGIAN ALAMAT PENGIRIMAN ── */}
+      <div className="mt-8 bg-white rounded-[1.75rem] md:rounded-[2rem] p-6 md:p-8 shadow-[0_24px_60px_-24px_rgba(42,33,24,0.28)] border border-coffee-100/60">
+        <div className="flex items-center justify-between mb-6 pb-4 border-b border-coffee-100">
+          <div>
+            <h2 className="text-xl font-extrabold text-coffee-800 flex items-center gap-2">
+              <MapPin size={20} className="text-accent-600" />
+              Alamat Pengiriman
+            </h2>
+            <p className="text-xs text-coffee-500 mt-0.5">
+              Kelola alamat tujuan untuk pesanan catering harianmu
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setAddressError(null);
+              setAddressModalOpen(true);
+            }}
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-accent-600 hover:bg-accent-700 text-white text-xs font-semibold rounded-full shadow-sm transition-all"
+          >
+            <Plus size={14} /> Tambah Alamat
+          </button>
+        </div>
+
+        {isLoadingAddresses ? (
+          <div className="flex items-center justify-center gap-2 py-8 text-coffee-400 text-sm">
+            <Loader2 size={18} className="animate-spin text-accent-600" />
+            <span>Memuat daftar alamat...</span>
+          </div>
+        ) : addresses.length === 0 ? (
+          <div className="text-center py-8 text-coffee-400 text-sm bg-cream-50/50 rounded-2xl border border-dashed border-coffee-200">
+            Belum ada alamat tersimpan. Klik "Tambah Alamat" untuk menambahkan alamat pengiriman.
+          </div>
+        ) : (
+          <div className="flex flex-col gap-3">
+            {addresses.map((addr) => (
+              <div
+                key={addr.id}
+                className={`p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all ${
+                  addr.isPrimary
+                    ? "bg-accent-50/40 border-accent-300 shadow-xs"
+                    : "bg-cream-50/30 border-coffee-100/70 hover:border-coffee-200"
+                }`}
+              >
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-bold text-coffee-800 text-sm">
+                      {addr.label}
+                    </span>
+                    {addr.isPrimary && (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase bg-accent-600 text-white px-2 py-0.5 rounded-full">
+                        <Star size={10} className="fill-white" /> Utama
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-coffee-600 leading-relaxed">
+                    {addr.fullAddress}
+                  </p>
+                  {addr.note && (
+                    <p className="text-[11px] text-coffee-400 mt-0.5 italic">
+                      Catatan: {addr.note}
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                  {!addr.isPrimary && (
+                    <button
+                      type="button"
+                      onClick={() => handleSetPrimary(addr.id)}
+                      className="text-xs text-coffee-600 hover:text-accent-700 font-semibold px-2.5 py-1.5 rounded-lg hover:bg-white transition-colors"
+                    >
+                      Jadikan Utama
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteAddress(addr.id)}
+                    className="p-1.5 text-coffee-400 hover:text-red-500 rounded-lg hover:bg-white transition-colors"
+                    title="Hapus Alamat"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* ── MODAL TAMBAH ALAMAT ── */}
+      {addressModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-coffee-950/40 backdrop-blur-xs">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-coffee-100 animate-fade-slide-up">
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-coffee-100">
+              <h3 className="font-extrabold text-lg text-coffee-800">
+                Tambah Alamat Baru
+              </h3>
+              <button
+                type="button"
+                onClick={() => setAddressModalOpen(false)}
+                className="p-1 text-coffee-400 hover:text-coffee-700 rounded-full hover:bg-cream-100"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {addressError && (
+              <div className="mb-4 bg-red-50 border border-red-200 text-red-600 text-xs rounded-xl p-3 flex items-start gap-2">
+                <AlertCircle size={15} className="shrink-0 mt-0.5" />
+                <span>{addressError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleAddAddress} className="flex flex-col gap-3.5 text-sm">
+              <div>
+                <label className="block text-xs font-semibold text-coffee-700 mb-1">
+                  Label Alamat
+                </label>
+                <input
+                  type="text"
+                  placeholder="Rumah, Kantor, Kost..."
+                  value={addressForm.label}
+                  onChange={(e) =>
+                    setAddressForm({ ...addressForm, label: e.target.value })
+                  }
+                  required
+                  className="w-full bg-cream-50 border border-coffee-200 rounded-xl px-3 py-2 text-coffee-800 outline-none focus:border-accent-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-coffee-700 mb-1">
+                  Alamat Lengkap
+                </label>
+                <textarea
+                  rows={3}
+                  placeholder="Nama jalan, nomor rumah, RT/RW, kelurahan..."
+                  value={addressForm.fullAddress}
+                  onChange={(e) =>
+                    setAddressForm({ ...addressForm, fullAddress: e.target.value })
+                  }
+                  required
+                  className="w-full bg-cream-50 border border-coffee-200 rounded-xl px-3 py-2 text-coffee-800 outline-none focus:border-accent-500 resize-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-coffee-700 mb-1">
+                  Catatan untuk Kurir (Opsional)
+                </label>
+                <input
+                  type="text"
+                  placeholder="Pagar warna hitam, titip satpam..."
+                  value={addressForm.note}
+                  onChange={(e) =>
+                    setAddressForm({ ...addressForm, note: e.target.value })
+                  }
+                  className="w-full bg-cream-50 border border-coffee-200 rounded-xl px-3 py-2 text-coffee-800 outline-none focus:border-accent-500"
+                />
+              </div>
+
+              <div className="flex items-center gap-2 pt-1">
+                <input
+                  type="checkbox"
+                  id="isPrimaryCheckbox"
+                  checked={addressForm.isPrimary}
+                  onChange={(e) =>
+                    setAddressForm({ ...addressForm, isPrimary: e.target.checked })
+                  }
+                  className="rounded border-coffee-300 text-accent-600 focus:ring-accent-500"
+                />
+                <label
+                  htmlFor="isPrimaryCheckbox"
+                  className="text-xs font-medium text-coffee-700 cursor-pointer select-none"
+                >
+                  Jadikan sebagai alamat utama
+                </label>
+              </div>
+
+              <div className="flex gap-2.5 pt-3">
+                <Button
+                  type="submit"
+                  variant="primary"
+                  className="flex-1"
+                  disabled={isSavingAddress}
+                  icon={isSavingAddress ? Loader2 : undefined}
+                >
+                  {isSavingAddress ? "Menyimpan..." : "Simpan Alamat"}
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  className="flex-1"
+                  onClick={() => setAddressModalOpen(false)}
+                >
+                  Batal
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </section>
   );
 };
 
 export default ProfilePage;
+

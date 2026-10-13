@@ -26,3 +26,12 @@ export const updateAdminOrderStatus = async (id, payload) => {
   const response = await apiClient.patch(`/admin/orders/${id}/status`, payload);
   return response.data;
 };
+
+/**
+ * PATCH /admin/orders/batch-status — update status banyak pesanan sekaligus
+ * @param {{ orderIds: string[], status: string, rejectionReason?: string }} payload
+ */
+export const batchUpdateAdminOrderStatus = async (payload) => {
+  const response = await apiClient.patch("/admin/orders/batch-status", payload);
+  return response.data;
+};

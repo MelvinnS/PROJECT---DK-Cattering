@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { landingMenus, menuSectionCopy } from "../../data/landingData";
 import { useOrder } from "../../context/OrderContext";
 import { useAuth } from "../../context/AuthContext";
+import { useMenu } from "../../context/MenuContext";
+import { formatCurrency } from "../../utils/formatters";
 import { useNavigate } from "react-router-dom";
 
 const cardSpring = { type: "spring", stiffness: 240, damping: 28 };
@@ -11,8 +13,32 @@ const cardSpring = { type: "spring", stiffness: 240, damping: 28 };
 const MenuShowcaseSection = () => {
   const { addToCart } = useOrder();
   const { isAuthenticated } = useAuth();
+  const { availableMenus } = useMenu();
   const navigate = useNavigate();
   const [items, setItems] = useState(landingMenus);
+
+  // Jika katalog menu aktif dari database sudah termuat, gunakan menu database
+  useEffect(() => {
+    if (availableMenus && availableMenus.length >= 3) {
+      const palette = [
+        { light: "#C48259", dark: "#A6633E" },
+        { light: "#4E7B68", dark: "#385C4D" },
+        { light: "#C87A5B", dark: "#A85E40" },
+        { light: "#5D6D7E", dark: "#34495E" },
+      ];
+      const mapped = availableMenus.slice(0, 6).map((m, idx) => ({
+        id: m.id,
+        name: m.name,
+        title: m.name,
+        price: formatCurrency(Number(m.price)),
+        priceValue: Number(m.price),
+        image: m.image || m.imageUrl || landingMenus[idx % landingMenus.length].image,
+        tagline: m.description || "Menu lezat berkualitas setiap hari",
+        bg: palette[idx % palette.length],
+      }));
+      setItems(mapped);
+    }
+  }, [availableMenus]);
   const [addedId, setAddedId] = useState(null);
   const [wrapId, setWrapId] = useState(null);
 
