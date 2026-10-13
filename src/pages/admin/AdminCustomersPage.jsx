@@ -10,17 +10,27 @@ import {
   ChevronRight,
   Loader2,
 } from "lucide-react";
+<<<<<<< HEAD
+=======
+import { getAdminCustomers } from "../../services/adminCustomerService";
+>>>>>>> d283d255bd34efc2c42ac002f008ca58ff7eb67e
 import CustomerDetailModal from "../../components/admin/CustomerDetailModal";
 import { getAdminCustomers, getAdminCustomerById } from "../../services/adminService";
 
 const AdminCustomersPage = () => {
   const [customers, setCustomers] = useState([]);
+<<<<<<< HEAD
   const [loading, setLoading] = useState(true);
+=======
+  const [total, setTotal] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+>>>>>>> d283d255bd34efc2c42ac002f008ca58ff7eb67e
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [totalCount, setTotalCount] = useState(0);
 
+<<<<<<< HEAD
   const fetchCustomers = async () => {
     setLoading(true);
     try {
@@ -62,6 +72,36 @@ const AdminCustomersPage = () => {
       setLoading(false);
     }
   };
+=======
+  // Fetch dari BE
+  useEffect(() => {
+    let isMounted = true;
+    setIsLoading(true);
+    getAdminCustomers({ page: currentPage, limit: 20, search })
+      .then((result) => {
+        if (!isMounted) return;
+        const items = Array.isArray(result) ? result : result?.data ?? [];
+        setCustomers(items);
+        setTotal(result?.meta?.total ?? items.length);
+      })
+      .catch((err) => console.error("Gagal memuat customers:", err))
+      .finally(() => { if (isMounted) setIsLoading(false); });
+    return () => { isMounted = false; };
+  }, [currentPage, search]);
+
+  // Filter customers by search
+  const filteredCustomers = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return customers;
+    return customers.filter(
+      (c) =>
+        c.id.toLowerCase().includes(q) ||
+        c.fullName.toLowerCase().includes(q) ||
+        (c.phone && c.phone.toLowerCase().includes(q)) ||
+        (c.email && c.email.toLowerCase().includes(q))
+    );
+  }, [customers, search]);
+>>>>>>> d283d255bd34efc2c42ac002f008ca58ff7eb67e
 
   useEffect(() => {
     fetchCustomers();
@@ -111,11 +151,20 @@ const AdminCustomersPage = () => {
   };
 
   const handleExport = () => {
+<<<<<<< HEAD
     const headers = "ID Customer,Nama Lengkap,No HP,Email,Terdaftar\n";
     const rows = customers
       .map(
         (c) =>
           `"${c.customerId}","${c.fullName}","${c.phone}","${c.email}","${c.registeredDate}"`
+=======
+    // Export simple CSV of customers
+    const headers = "ID Customer,Nama Lengkap,No HP,Email,Terdaftar\n";
+    const rows = filteredCustomers
+      .map(
+        (c) =>
+          `"${c.id}","${c.fullName}","${c.phone || '-'}","${c.email || '-'}","${c.createdAt ? new Date(c.createdAt).toLocaleDateString('id-ID') : '-'}"`
+>>>>>>> d283d255bd34efc2c42ac002f008ca58ff7eb67e
       )
       .join("\n");
     const blob = new Blob([headers + rows], { type: "text/csv;charset=utf-8;" });
@@ -215,6 +264,7 @@ const AdminCustomersPage = () => {
                   <div className="w-8 h-8 rounded-full bg-[#E2D8CC] text-[#5A4B3C] font-bold text-xs flex items-center justify-center shrink-0">
                     <span className="w-2.5 h-2.5 rounded-full bg-coffee-400/40 inline-block" />
                   </div>
+<<<<<<< HEAD
                   <div>
                     <span className="font-bold text-sm text-coffee-800 block">
                       {customer.customerId}
@@ -223,6 +273,11 @@ const AdminCustomersPage = () => {
                       {customer.email}
                     </span>
                   </div>
+=======
+                  <span className="font-bold text-sm text-coffee-800">
+                    {customer.id.substring(0, 8)}...
+                  </span>
+>>>>>>> d283d255bd34efc2c42ac002f008ca58ff7eb67e
                 </div>
 
                 {/* Desktop View: Nama Lengkap */}
@@ -243,7 +298,7 @@ const AdminCustomersPage = () => {
                     </div>
                     <div className="min-w-0">
                       <p className="font-bold text-xs text-coffee-800">
-                        {customer.customerId}
+                        {customer.id.substring(0, 8)}...
                       </p>
                       <p className="font-semibold text-sm text-coffee-700 truncate">
                         {customer.fullName}

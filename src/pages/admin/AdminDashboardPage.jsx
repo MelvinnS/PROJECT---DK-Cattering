@@ -17,7 +17,7 @@ const todayLabel = new Date().toLocaleDateString("id-ID", {
 
 const AdminDashboardPage = () => {
   const { user } = useAuth();
-  const { orders, statusCounts } = useAdminOrders();
+  const { orders, statusCounts, fetchOrders } = useAdminOrders();
 
   // Ambil 5 pesanan terbaru
   const recentOrders = useMemo(() => {
@@ -26,18 +26,27 @@ const AdminDashboardPage = () => {
       .slice(0, 5);
   }, [orders]);
 
-  // urgentAlertsCount dari backend (jika server aktif)
+  // urgentAlertsCount dan statusCounts dari backend
   const [urgentCount, setUrgentCount] = useState(null);
+  const [overviewCounts, setOverviewCounts] = useState(null);
   const [isLoadingAlerts, setIsLoadingAlerts] = useState(true);
 
   useEffect(() => {
+    // Fetch pesanan terbaru untuk dashboard
+    fetchOrders({ limit: 20 });
+
     let isMounted = true;
     getAnalyticsOverview("daily")
       .then((data) => {
-        if (isMounted) setUrgentCount(data.urgentAlertsCount ?? 0);
+        if (isMounted) {
+          setUrgentCount(data.urgentAlertsCount ?? 0);
+          if (data.statusCounts) {
+            setOverviewCounts(data.statusCounts);
+          }
+        }
       })
       .catch(() => {
-        // Abaikan error jika backend belum berjalan (menggunakan fallback dummy)
+        // Abaikan error jika backend belum berjalan
       })
       .finally(() => {
         if (isMounted) setIsLoadingAlerts(false);
@@ -45,7 +54,9 @@ const AdminDashboardPage = () => {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const displayCounts = overviewCounts || statusCounts;
 
   const alertItems = [];
   if (urgentCount > 0) {
@@ -54,16 +65,16 @@ const AdminDashboardPage = () => {
       text: `${urgentCount} pesanan dijadwalkan diantar hari ini tapi belum mulai dimasak — segera diproses.`,
     });
   }
-  if (statusCounts.new > 0) {
+  if (displayCounts.new > 0) {
     alertItems.push({
       id: "new-orders",
-      text: `Ada ${statusCounts.new} pesanan baru menunggu konfirmasi penerimaan dari kamu.`,
+      text: `Ada ${displayCounts.new} pesanan baru menunggu konfirmasi penerimaan dari kamu.`,
     });
   }
-  if (statusCounts.inKitchen > 0) {
+  if (displayCounts.inKitchen > 0) {
     alertItems.push({
       id: "kitchen-orders",
-      text: `${statusCounts.inKitchen} pesanan sedang dalam proses memasak di dapur.`,
+      text: `${displayCounts.inKitchen} pesanan sedang dalam proses memasak di dapur.`,
     });
   }
 
@@ -86,25 +97,25 @@ const AdminDashboardPage = () => {
         <StatCard
           icon={Bell}
           label="Pesanan Baru"
-          value={statusCounts.new}
+          value={displayCounts.new}
           tone="amber"
         />
         <StatCard
           icon={ChefHat}
           label="Sedang Dimasak"
-          value={statusCounts.inKitchen}
+          value={displayCounts.inKitchen}
           tone="blue"
         />
         <StatCard
           icon={Truck}
           label="Sedang Diantar"
-          value={statusCounts.onDelivery}
+          value={displayCounts.onDelivery}
           tone="purple"
         />
         <StatCard
           icon={CheckCircle2}
           label="Selesai Hari Ini"
-          value={statusCounts.done}
+          value={displayCounts.done}
           tone="green"
         />
       </div>

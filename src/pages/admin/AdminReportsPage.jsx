@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import {
   Search,
   ChevronLeft,
@@ -543,25 +543,71 @@ const TransactionDetailModal = ({ trx, onClose }) => {
 // ─── KOMPONEN UTAMA: HALAMAN LAPORAN TRANSAKSI ─────────────────────────────────
 
 const AdminReportsPage = () => {
+  const [transactions, setTransactions] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedTrx, setSelectedTrx] = useState(null);
 
-  // Nilai ringkasan stat card sesuai referensi
-  const totalPendapatanDisplay = "Rp12.500.000";
-  const totalTransaksiDisplay = 325;
+  // Fetch transaksi dari BE — orders yang completed/delivered
+  useEffect(() => {
+    let isMounted = true;
+    setIsLoading(true);
+    import("../../services/adminOrderService")
+      .then(({ getAdminOrders }) =>
+        getAdminOrders({ limit: 200, status: "COMPLETED,DELIVERED" })
+      )
+      .then((result) => {
+        if (!isMounted) return;
+        const items = Array.isArray(result) ? result : result?.data ?? [];
+        // Normalize BE fields → fields yang dipakai komponen
+        const normalized = items.map((o) => ({
+          id: o.orderNumber ?? o.id,
+          customerId: o.user?.id ?? "-",
+          customerName: o.user?.fullName ?? "Customer",
+          date: o.createdAt?.slice(0, 10) ?? "",
+          dateLabel: o.createdAt
+            ? new Date(o.createdAt).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })
+            : "-",
+          deliverySlot: o.slot ? `${o.slot.name} (${o.slot.startTime} - ${o.slot.endTime})` : "-",
+          paymentMethod: o.payment?.louvinInvoiceId ? "QRIS/Transfer" : "-",
+          status: o.status,
+          subtotal: Number(o.subtotal),
+          deliveryFee: Number(o.deliveryFee),
+          total: Number(o.totalPrice),
+          notes: o.notes ?? "",
+          items: o.items?.map((i) => ({
+            id: i.id,
+            name: i.menu?.name ?? "Menu",
+            image: i.menu?.imageUrl ?? "",
+            qty: i.quantity,
+            price: Number(i.price),
+          })) ?? [],
+        }));
+        setTransactions(normalized);
+      })
+      .catch((err) => console.error("Gagal memuat transaksi:", err))
+      .finally(() => { if (isMounted) setIsLoading(false); });
+    return () => { isMounted = false; };
+  }, []);
+
+  // Stats dari data real
+  const totalPendapatanDisplay = transactions.length
+    ? "Rp" + transactions.reduce((s, t) => s + t.total, 0).toLocaleString("id-ID")
+    : "Rp0";
+  const totalTransaksiDisplay = transactions.length;
 
   // Filter pencarian
   const filteredTransactions = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return DUMMY_TRANSACTIONS;
-    return DUMMY_TRANSACTIONS.filter(
+    if (!q) return transactions;
+    return transactions.filter(
       (t) =>
         t.customerName.toLowerCase().includes(q) ||
         t.customerId.toLowerCase().includes(q) ||
         t.id.toLowerCase().includes(q)
     );
-  }, [search]);
+  }, [search, transactions]);
 
   // Pagination
   const totalPages = Math.max(1, Math.ceil(filteredTransactions.length / ROWS_PER_PAGE));

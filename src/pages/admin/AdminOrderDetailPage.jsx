@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import {
   ArrowLeft,
@@ -15,9 +15,10 @@ import {
   XCircle,
   AlertTriangle,
   MessageCircle,
+  Loader2,
 } from "lucide-react";
 import { useAdminOrders } from "../../context/AdminOrderContext";
-import { dummyOrderStatusColor, dummyOrderStatusLabel } from "../../data/adminDummyData";
+import { orderStatusColor as dummyOrderStatusColor, orderStatusLabel as dummyOrderStatusLabel } from "../../context/OrderContext";
 import { formatCurrency } from "../../utils/formatters";
 import RejectOrderModal from "../../components/admin/RejectOrderModal";
 import OrderReceiptPrint from "../../components/admin/OrderReceiptPrint";
@@ -26,9 +27,30 @@ const AdminOrderDetailPage = () => {
   const { id } = useParams();
   const { getOrderById, updateOrderStatus, rejectOrder } = useAdminOrders();
 
-  const order = getOrderById(id);
-
+  const [order, setOrder] = useState(null);
+  const [isLoadingOrder, setIsLoadingOrder] = useState(true);
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+    setIsLoadingOrder(true);
+    getOrderById(id).then((data) => {
+      if (isMounted) {
+        setOrder(data);
+        setIsLoadingOrder(false);
+      }
+    });
+    return () => { isMounted = false; };
+  }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (isLoadingOrder) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh] gap-3 text-coffee-500/70">
+        <Loader2 size={24} className="animate-spin text-accent-600" />
+        <span>Memuat detail pesanan...</span>
+      </div>
+    );
+  }
 
   if (!order) {
     return (

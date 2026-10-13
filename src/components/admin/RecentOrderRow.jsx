@@ -1,6 +1,6 @@
 import { Clock, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
-import { dummyOrderStatusLabel, dummyOrderStatusColor } from "../../data/adminDummyData";
+import { orderStatusLabel, orderStatusColor } from "../../context/OrderContext";
 import { formatCurrency } from "../../utils/formatters";
 
 const formatTime = (isoString) =>
@@ -43,10 +43,10 @@ const RecentOrderRow = ({ order }) => {
 
       <span
         className={`text-xs font-semibold px-2.5 sm:px-3 py-1 rounded-full shrink-0 ${
-          dummyOrderStatusColor[order.status] || "bg-coffee-100 text-coffee-700"
+          orderStatusColor[order.status] || "bg-coffee-100 text-coffee-700"
         }`}
       >
-        {dummyOrderStatusLabel[order.status] || order.status}
+        {orderStatusLabel[order.status] || order.status}
       </span>
 
       <ChevronRight

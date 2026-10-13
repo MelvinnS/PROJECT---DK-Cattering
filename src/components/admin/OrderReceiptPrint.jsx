@@ -1,7 +1,7 @@
 import { forwardRef } from "react";
 import { Coffee } from "lucide-react";
 import { formatCurrency } from "../../utils/formatters";
-import { dummyOrderStatusLabel } from "../../data/adminDummyData";
+import { orderStatusLabel } from "../../context/OrderContext";
 
 /**
  * Komponen struk cetak (Printable Receipt).
@@ -65,7 +65,7 @@ const OrderReceiptPrint = forwardRef(({ order }, ref) => {
         <div className="flex justify-between">
           <span className="text-coffee-500">Status:</span>
           <span className="font-semibold text-coffee-800">
-            {dummyOrderStatusLabel[order.status] || order.status}
+            {orderStatusLabel[order.status] || order.status}
           </span>
         </div>
       </div>

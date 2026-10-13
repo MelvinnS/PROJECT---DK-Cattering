@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { testimonialCopy } from "../../data/landingData";
+import { getPublicReviews } from "../../services/reviewService";
 import useMediaQuery from "../../hooks/useMediaQuery";
 
 const tilts = [-3, 0, 3];
@@ -23,6 +24,31 @@ const TestimonialSection = () => {
   const [items, setItems] = useState(
     testimonialCopy.items.map((t, i) => ({ ...t, id: i }))
   );
+
+  // Ambil ulasan nyata dari database publik jika tersedia
+  useEffect(() => {
+    let isMounted = true;
+    getPublicReviews({ limit: 10 })
+      .then((res) => {
+        if (!isMounted) return;
+        const revs = Array.isArray(res) ? res : res?.data ?? [];
+        if (revs.length > 0) {
+          const mapped = revs.map((r, idx) => ({
+            id: r.id || idx,
+            title: r.user?.fullName || "Pelanggan Setia",
+            text: r.comment || "Makanannya sangat lezat dan pengirimannya selalu tepat waktu!",
+            role: `Rating ${r.rating || 5}★`,
+          }));
+          setItems(mapped);
+        }
+      })
+      .catch(() => {
+        // Fallback ke testimonial default
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
   const visibleCount = isDesktop ? 3 : 1;
 
   const rotate = (dir) =>

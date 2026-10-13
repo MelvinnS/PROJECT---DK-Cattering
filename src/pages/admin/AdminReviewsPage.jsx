@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import {
   Search,
   MessageSquare,
@@ -13,133 +13,9 @@ import {
   CheckCircle2,
   Clock,
   Utensils,
-  Eye,
+  Trash2,
 } from "lucide-react";
-
-// ─── MOCK DATA SARAN & MASUKAN ────────────────────────────────────────────────
-
-const INITIAL_REVIEWS = [
-  {
-    id: "REV-001",
-    customerId: "Cust 1",
-    customerName: "Melvin Alio",
-    avatarBg: "bg-[#FDE8D0]",
-    avatarText: "text-[#8C4A26]",
-    date: "2026-09-03",
-    dateLabel: "3 Sep 2026",
-    orderId: "TRX-03092026-001",
-    rating: 5,
-    comment: "Makanannya enak dan pengirimannya tepat waktu.",
-    isRead: false,
-    orderedItems: "Nasi Ayam Katsu × 2",
-    deliverySlot: "Siang (12:00 - 14:00)",
-  },
-  {
-    id: "REV-002",
-    customerId: "Cust 2",
-    customerName: "Dita Rahmawati",
-    avatarBg: "bg-[#FEF5D8]",
-    avatarText: "text-[#997300]",
-    date: "2026-09-02",
-    dateLabel: "2 Sep 2026",
-    orderId: "TRX-02092026-002",
-    rating: 5,
-    comment: "Rasanya sudah pas, porsi juga pas. Terima kasih!",
-    isRead: true,
-    orderedItems: "Nasi Yakiniku × 1",
-    deliverySlot: "Siang (12:00 - 14:00)",
-  },
-  {
-    id: "REV-003",
-    customerId: "Cust 3",
-    customerName: "Budi Santoso",
-    avatarBg: "bg-[#E2F4E6]",
-    avatarText: "text-[#2D7A4D]",
-    date: "2026-09-01",
-    dateLabel: "1 Sep 2026",
-    orderId: "TRX-01092026-003",
-    rating: 3,
-    comment: "Pengiriman agak terlambat, tapi makanannya tetap enak.",
-    isRead: false,
-    orderedItems: "Nasi Chicken Teriyaki × 1",
-    deliverySlot: "Pagi (08:00 - 10:00)",
-  },
-  {
-    id: "REV-004",
-    customerId: "Cust 4",
-    customerName: "Sri Wulandari",
-    avatarBg: "bg-[#EDE4F8]",
-    avatarText: "text-[#6B4699]",
-    date: "2026-09-01",
-    dateLabel: "1 Sep 2026",
-    orderId: "TRX-01092026-004",
-    rating: 5,
-    comment: "Sangat puas! Pasti pesan lagi lain waktu.",
-    isRead: true,
-    orderedItems: "Nasi Ayam Katsu × 2, Nasi Chicken Karaage × 1",
-    deliverySlot: "Pagi (08:00 - 10:00)",
-  },
-  {
-    id: "REV-005",
-    customerId: "Cust 5",
-    customerName: "Andi Prasetyo",
-    avatarBg: "bg-[#FDE8D0]",
-    avatarText: "text-[#8C4A26]",
-    date: "2026-08-31",
-    dateLabel: "31 Agu 2026",
-    orderId: "TRX-31082026-005",
-    rating: 4,
-    comment: "Packaging rapi dan makanan masih hangat.",
-    isRead: true,
-    orderedItems: "Nasi Chicken Karaage × 1",
-    deliverySlot: "Siang (12:00 - 14:00)",
-  },
-  // Dummy records pelengkap untuk 86 total masukan & paginasi
-  ...Array.from({ length: 81 }, (_, i) => {
-    const num = i + 6;
-    const ratings = [5, 5, 4, 5, 3, 4, 5, 4, 5, 2];
-    const rating = ratings[i % ratings.length];
-    const isRead = i % 7 !== 0; // Sebagian unread agar total unread ~12
-    const avatarBgs = ["bg-[#FDE8D0]", "bg-[#FEF5D8]", "bg-[#E2F4E6]", "bg-[#EDE4F8]"];
-    const avatarTexts = ["text-[#8C4A26]", "text-[#997300]", "text-[#2D7A4D]", "text-[#6B4699]"];
-    const names = [
-      "Rina Kusuma",
-      "Hendra Wijaya",
-      "Maya Safitri",
-      "Fajar Pratama",
-      "Siti Nurhaliza",
-      "Agus Salim",
-      "Dewi Lestari",
-      "Eko Prasetyo",
-      "Lestari Putri",
-    ];
-    const comments = [
-      "Menu variatif dan bumbunya meresap sampai ke dalam ayamnya.",
-      "Kualitas bahan terjaga dengan sangat baik, cocok untuk makan siang kantor.",
-      "Porsinya cukup kenyang dan sambalnya mantap!",
-      "Anak-anak suka sekali dengan Chicken Katsu-nya.",
-      "Pelayanan ramah dan kurir sangat sopan.",
-      "Semoga ke depannya ada opsi menu diet rendah kalori.",
-      "Sangat terbantu dengan jadwal pengiriman yang tepat waktu.",
-    ];
-
-    return {
-      id: `REV-${String(num).padStart(3, "0")}`,
-      customerId: `Cust ${num}`,
-      customerName: names[i % names.length],
-      avatarBg: avatarBgs[i % avatarBgs.length],
-      avatarText: avatarTexts[i % avatarTexts.length],
-      date: `2026-08-${String(Math.max(1, 30 - (i % 30))).padStart(2, "0")}`,
-      dateLabel: `${Math.max(1, 30 - (i % 30))} Agu 2026`,
-      orderId: `TRX-${String(Math.max(1, 30 - (i % 30))).padStart(2, "0")}082026-${String(num).padStart(3, "0")}`,
-      rating,
-      comment: comments[i % comments.length],
-      isRead,
-      orderedItems: "Nasi Ayam Katsu × 1, Nasi Yakiniku × 1",
-      deliverySlot: i % 2 === 0 ? "Siang (12:00 - 14:00)" : "Pagi (08:00 - 10:00)",
-    };
-  }),
-];
+import { getAdminReviews, deleteAdminReview } from "../../services/reviewService";
 
 const ROWS_PER_PAGE = 5;
 
@@ -168,7 +44,7 @@ const StarRating = ({ rating, max = 5, size = 15 }) => {
 
 // ─── POPUP DETAIL ULASAN (MODAL) ─────────────────────────────────────────────
 
-const ReviewDetailModal = ({ review, onClose, onToggleRead }) => {
+const ReviewDetailModal = ({ review, onClose, onToggleRead, onDelete }) => {
   if (!review) return null;
 
   return (
@@ -300,8 +176,15 @@ const ReviewDetailModal = ({ review, onClose, onToggleRead }) => {
           </div>
         </div>
 
-        {/* Footer Modal: Tombol Tutup */}
-        <div className="shrink-0 px-6 py-3.5 border-t border-coffee-100/70 flex justify-end bg-white">
+        {/* Footer Modal: Tombol Hapus & Tutup */}
+        <div className="shrink-0 px-6 py-3.5 border-t border-coffee-100/70 flex justify-between items-center bg-white">
+          <button
+            type="button"
+            onClick={() => onDelete(review.id)}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 text-xs sm:text-sm font-semibold transition-colors cursor-pointer"
+          >
+            <Trash2 size={14} /> Hapus Ulasan
+          </button>
           <button
             type="button"
             onClick={onClose}
@@ -318,26 +201,64 @@ const ReviewDetailModal = ({ review, onClose, onToggleRead }) => {
 // ─── KOMPONEN UTAMA: ADMIN REVIEWS PAGE ───────────────────────────────────────
 
 const AdminReviewsPage = () => {
-  const [reviews, setReviews] = useState(INITIAL_REVIEWS);
+  const [reviews, setReviews] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("ALL"); // 'ALL' | 'UNREAD' | 'READ'
-  const [ratingFilter, setRatingFilter] = useState("ALL"); // 'ALL' | '5' | '4' | '3' | '2' | '1'
+  const [statusFilter, setStatusFilter] = useState("ALL");
+  const [ratingFilter, setRatingFilter] = useState("ALL");
   const [isRatingDropdownOpen, setIsRatingDropdownOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedReview, setSelectedReview] = useState(null);
 
-  // Stats Card data (sesuai referensi: 86 total, 12 belum dibaca, 4.7 / 5 rating)
-  const totalMasukan = 86;
-  const belumDibaca = reviews.filter((r) => !r.isRead).length || 12;
-  const averageRating = "4.7";
+  // Fetch ulasan dari backend
+  useEffect(() => {
+    let isMounted = true;
+    setIsLoading(true);
+    getAdminReviews({ limit: 100 })
+      .then((result) => {
+        if (!isMounted) return;
+        const items = Array.isArray(result) ? result : result?.data ?? [];
+        const normalized = items.map((r) => ({
+          id: r.id,
+          customerId: r.user?.email ?? "Cust",
+          customerName: r.user?.fullName ?? "Customer",
+          date: r.createdAt?.slice(0, 10) ?? "",
+          dateLabel: r.createdAt ? new Date(r.createdAt).toLocaleDateString("id-ID") : "",
+          orderId: r.order?.orderNumber ?? "-",
+          rating: r.rating ?? 0,
+          comment: r.comment ?? "-",
+          orderedItems: "-", // Belum didukung API
+          avatarBg: "bg-[#FDE8D0]",
+          avatarText: "text-[#8C4A26]",
+        }));
+        setReviews(normalized);
+      })
+      .catch((err) => console.error("Gagal memuat reviews:", err))
+      .finally(() => { if (isMounted) setIsLoading(false); });
+    return () => { isMounted = false; };
+  }, []);
 
-  // Toggle status read
-  const handleToggleRead = (id) => {
-    setReviews((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, isRead: !r.isRead } : r))
-    );
-    if (selectedReview && selectedReview.id === id) {
-      setSelectedReview((prev) => ({ ...prev, isRead: !prev.isRead }));
+  const totalMasukan = reviews.length;
+  // `isRead` tidak ada di BE, sembunyikan nilai unread
+  const belumDibaca = 0; 
+  const avgNum = reviews.length
+    ? (reviews.reduce((s, r) => s + (r.rating ?? 0), 0) / reviews.length).toFixed(1)
+    : "0.0";
+  const averageRating = avgNum;
+
+  // Toggle status read (Hanya dummy di state lokal)
+  const handleToggleRead = () => {
+      // Tidak diimplementasikan ke BE
+  };
+
+  const handleDeleteReview = async (id) => {
+    if (!window.confirm("Apakah kamu yakin ingin menghapus ulasan ini?")) return;
+    try {
+      await deleteAdminReview(id);
+      setReviews((prev) => prev.filter((r) => r.id !== id));
+      setSelectedReview(null);
+    } catch (err) {
+      alert(err.message || "Gagal menghapus ulasan");
     }
   };
 
@@ -352,17 +273,12 @@ const AdminReviewsPage = () => {
         r.orderId.toLowerCase().includes(q) ||
         r.comment.toLowerCase().includes(q);
 
-      const matchStatus =
-        statusFilter === "ALL" ||
-        (statusFilter === "UNREAD" && !r.isRead) ||
-        (statusFilter === "READ" && r.isRead);
-
       const matchRating =
         ratingFilter === "ALL" || r.rating === parseInt(ratingFilter, 10);
 
-      return matchSearch && matchStatus && matchRating;
+      return matchSearch && matchRating;
     });
-  }, [reviews, search, statusFilter, ratingFilter]);
+  }, [reviews, search, ratingFilter]);
 
   // Pagination (5 items per page)
   const totalPages = Math.max(1, Math.ceil(filteredReviews.length / ROWS_PER_PAGE));
@@ -568,7 +484,11 @@ const AdminReviewsPage = () => {
 
         {/* ── List Saran & Masukan (Desktop & Mobile) */}
         <div className="bg-white rounded-2xl md:rounded-3xl border border-coffee-100/70 shadow-[0_12px_36px_-20px_rgba(42,33,24,0.15)] overflow-hidden">
-          {paginatedList.length === 0 ? (
+          {isLoading ? (
+            <div className="py-16 text-center text-coffee-500 text-sm">
+              Memuat masukan dan saran pelanggan...
+            </div>
+          ) : paginatedList.length === 0 ? (
             <div className="py-16 text-center text-coffee-400 text-sm">
               Tidak ada masukan yang sesuai dengan filter pencarian.
             </div>
@@ -738,6 +658,7 @@ const AdminReviewsPage = () => {
         review={selectedReview}
         onClose={() => setSelectedReview(null)}
         onToggleRead={handleToggleRead}
+        onDelete={handleDeleteReview}
       />
     </>
   );

@@ -11,7 +11,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { useAdminOrders } from "../../context/AdminOrderContext";
-import { dummyOrderStatusColor, dummyOrderStatusLabel } from "../../data/adminDummyData";
+import { orderStatusColor as dummyOrderStatusColor, orderStatusLabel as dummyOrderStatusLabel } from "../../context/OrderContext";
 import { formatCurrency } from "../../utils/formatters";
 import RejectOrderModal from "../../components/admin/RejectOrderModal";
 
@@ -25,6 +25,7 @@ const statusFilterTabs = [
 ];
 
 const AdminOrdersPage = () => {
+<<<<<<< HEAD
   const { orders, loading, refreshOrders, acceptOrder, rejectOrder, batchAcceptOrders, batchRejectOrders } =
     useAdminOrders();
 
@@ -35,6 +36,14 @@ const AdminOrdersPage = () => {
     }, 30000);
     return () => clearInterval(interval);
   }, [refreshOrders]);
+=======
+  const { orders, isLoading, fetchOrders, acceptOrder, rejectOrder, batchAcceptOrders, batchRejectOrders } =
+    useAdminOrders();
+
+  useEffect(() => {
+    fetchOrders({ limit: 50 });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+>>>>>>> d283d255bd34efc2c42ac002f008ca58ff7eb67e
 
   const [search, setSearch] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("ALL");

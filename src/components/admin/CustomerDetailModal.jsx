@@ -52,7 +52,7 @@ const CustomerDetailModal = ({ isOpen, onClose, customer }) => {
           <div className="flex items-start justify-between pb-4 border-b border-coffee-100/70">
             <div className="flex items-center gap-3.5">
               <div className="w-12 h-12 rounded-full bg-[#E2D8CC] text-[#5A4B3C] font-extrabold text-base flex items-center justify-center shrink-0 border border-coffee-200/60">
-                {customer.customerId}
+                {customer.id?.substring(0, 2).toUpperCase()}
               </div>
               <div>
                 <p className="text-xs font-bold text-coffee-400 uppercase tracking-wider">
@@ -62,7 +62,7 @@ const CustomerDetailModal = ({ isOpen, onClose, customer }) => {
                   {customer.fullName}
                 </h3>
                 <span className="inline-block mt-0.5 text-xs font-bold text-accent-700 bg-accent-50 px-2.5 py-0.5 rounded-md border border-accent-200/60">
-                  {customer.customerId}
+                  {customer.id}
                 </span>
               </div>
             </div>
@@ -107,13 +107,13 @@ const CustomerDetailModal = ({ isOpen, onClose, customer }) => {
               </div>
 
               <div className="flex items-center justify-between sm:justify-start sm:gap-3">
-                <span className="text-coffee-500 font-medium w-24">Username:</span>
-                <span className="font-semibold text-coffee-700">@{customer.username}</span>
+                <span className="text-coffee-500 font-medium w-24">Email:</span>
+                <span className="font-semibold text-coffee-700">{customer.email || "-"}</span>
               </div>
 
               <div className="flex items-center justify-between sm:justify-start sm:gap-3">
                 <span className="text-coffee-500 font-medium w-24">Terdaftar:</span>
-                <span className="font-semibold text-coffee-700">{customer.registeredDate}</span>
+                <span className="font-semibold text-coffee-700">{customer.createdAt ? new Date(customer.createdAt).toLocaleDateString('id-ID') : '-'}</span>
               </div>
             </div>
           </div>
@@ -125,7 +125,7 @@ const CustomerDetailModal = ({ isOpen, onClose, customer }) => {
               Alamat Utama
             </h4>
             <div className="bg-white p-3.5 rounded-xl border border-coffee-200/80 text-xs sm:text-sm text-coffee-800 leading-relaxed font-medium">
-              {customer.address}
+              {customer.address || "Alamat tidak tersedia dalam ringkasan ini."}
             </div>
           </div>
 
@@ -140,10 +140,10 @@ const CustomerDetailModal = ({ isOpen, onClose, customer }) => {
               <div className="bg-cream-50/80 p-3.5 rounded-xl border border-coffee-100/80">
                 <p className="text-xs text-coffee-500 font-medium">Total Pesanan</p>
                 <p className="font-black text-base sm:text-lg text-coffee-800 mt-0.5">
-                  {customer.orderSummary?.totalOrders || 12} Pesanan
+                  {customer.totalOrdersCount || 0} Pesanan
                 </p>
                 <p className="text-xs font-bold text-accent-700 mt-0.5">
-                  {formatCurrency(customer.orderSummary?.totalSpent || 1250000)}
+                  {formatCurrency(customer.totalSpending || 0)}
                 </p>
               </div>
 
@@ -151,10 +151,10 @@ const CustomerDetailModal = ({ isOpen, onClose, customer }) => {
                 <p className="text-xs text-coffee-500 font-medium">Status Pesanan</p>
                 <div className="flex items-center gap-2 mt-1">
                   <span className="inline-flex items-center gap-1 text-xs font-bold text-green-700 bg-green-100 px-2 py-0.5 rounded">
-                    {customer.orderSummary?.completed || 10} Selesai
+                    {customer.totalOrdersCount || 0} Total Selesai
                   </span>
                   <span className="inline-flex items-center gap-1 text-xs font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded">
-                    {customer.orderSummary?.ongoing || 1} Berlangsung
+                    {customer.activeSubscriptionsCount || 0} Langganan Aktif
                   </span>
                 </div>
               </div>
@@ -169,29 +169,35 @@ const CustomerDetailModal = ({ isOpen, onClose, customer }) => {
             </h4>
 
             <div className="bg-white rounded-xl border border-coffee-100 divide-y divide-coffee-100/70 overflow-hidden">
-              {customer.recentOrders?.map((item, idx) => (
-                <div
-                  key={idx}
-                  className="px-3.5 py-2.5 flex items-center justify-between text-xs sm:text-sm"
-                >
-                  <div className="flex items-center gap-2 min-w-0">
-                    <Receipt size={14} className="text-coffee-400 shrink-0" />
-                    <span className="font-semibold text-coffee-800 truncate">
-                      {item.name} ×{item.qty}
+              {(!customer.recentOrders || customer.recentOrders.length === 0) ? (
+                <div className="p-4 text-center text-coffee-400 text-xs">
+                  Detail pesanan tidak dimuat dalam ringkasan ini.
+                </div>
+              ) : (
+                customer.recentOrders.map((item, idx) => (
+                  <div
+                    key={idx}
+                    className="px-3.5 py-2.5 flex items-center justify-between text-xs sm:text-sm"
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Receipt size={14} className="text-coffee-400 shrink-0" />
+                      <span className="font-semibold text-coffee-800 truncate">
+                        {item.name} ×{item.qty}
+                      </span>
+                    </div>
+                    <span className="font-bold text-coffee-800 shrink-0 ml-2">
+                      {formatCurrency(item.price)}
                     </span>
                   </div>
-                  <span className="font-bold text-coffee-800 shrink-0 ml-2">
-                    {formatCurrency(item.price)}
-                  </span>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
 
           {/* Footer / Action Link */}
           <div className="pt-2 border-t border-coffee-100/70 flex items-center justify-between">
             <Link
-              to={`/admin/orders?search=${encodeURIComponent(customer.customerId)}`}
+              to={`/admin/orders?search=${encodeURIComponent(customer.email || customer.fullName)}`}
               onClick={onClose}
               className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-accent-600 hover:text-accent-700 transition-colors"
             >
